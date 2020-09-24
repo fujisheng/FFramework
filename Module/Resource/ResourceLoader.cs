@@ -14,7 +14,7 @@ namespace Framework.Module.Resource
         {
             assets = new Dictionary<string, IAsset>();
             assetsRef = new Dictionary<IAsset, int>();
-            resourceManager = ModuleManager.GetModule<IResourceManager>();
+            resourceManager = ModuleManager.Instance.GetModule<IResourceManager>();
         }
 
         public void SetResourceManager(IResourceManager resourceManager)
@@ -117,6 +117,16 @@ namespace Framework.Module.Resource
             var obj = Object.Instantiate(result.asset as GameObject);
             result.Require(obj);
             return obj;
+        }
+
+        public async Task<GameObject> InstantiateAsync(string assetName)
+        {
+            return null;
+        }
+
+        public void DestroyGameObject(GameObject gameObject)
+        {
+            Object.DestroyImmediate(gameObject);
         }
 
         public void Release()

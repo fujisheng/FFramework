@@ -1,4 +1,5 @@
 ﻿using Framework.Module.Resource;
+using System;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -7,18 +8,18 @@ namespace Framework.Module.ObjectPool
     public class GameObjectPool : AsyncObjectPool<GameObject>, IGameObjectPool
     {
         string gameObjectName;
-        IResourceManager resManager;
+        IResourceLoader resourceLoader;
         public override int Size => 10;
 
         public GameObjectPool()
         {
-            resManager = ModuleManager.GetModule<IResourceManager>();
+            resourceLoader = new ResourceLoader();
         }
 
         public GameObjectPool(string gameObjectName)
         {
             this.gameObjectName = gameObjectName;
-            resManager = ModuleManager.GetModule<IResourceManager>();
+            resourceLoader = new ResourceLoader();
         }
 
         public void SetGameObjectName(string gameObjectName)
@@ -30,9 +31,9 @@ namespace Framework.Module.ObjectPool
             this.gameObjectName = gameObjectName;
         }
 
-        public void SetResManager(IResourceManager resManager)
+        public void SetResourceLoader(IResourceLoader  resourceLoader)
         {
-            this.resManager = resManager;
+            this.resourceLoader = resourceLoader;
         }
 
 
@@ -40,18 +41,15 @@ namespace Framework.Module.ObjectPool
         {
             if (string.IsNullOrEmpty(gameObjectName))
             {
-                Debug.LogError("还没有为当前GameObject设置名字");
-                return null;
+                throw new Exception("gameObject name is empty, need set gameObject name first");
             }
-            if (resManager == null)
+            if (resourceLoader == null)
             {
-                Debug.LogError("当前resManager为空！！！");
+                throw new Exception("resourceLoader is empty, need set resourceLoader first");
             }
-            IAsset asset = await resManager.LoadAsync<GameObject>(gameObjectName);
-            GameObject gameObjectR = UnityEngine.Object.Instantiate(asset.asset as GameObject);
-            gameObjectR.SetActive(true);
-            asset.Require(gameObjectR);
-            return gameObjectR;
+            var gameObject = await resourceLoader.InstantiateAsync(gameObjectName);
+            gameObject.SetActive(true);
+            return gameObject;
         }
 
         public override void Dispose()
@@ -63,7 +61,7 @@ namespace Framework.Module.ObjectPool
                     break;
                 }
 
-                GameObject.Destroy(pool.Pop());
+                GameObject.DestroyImmediate(pool.Pop());
             }
         }
     }

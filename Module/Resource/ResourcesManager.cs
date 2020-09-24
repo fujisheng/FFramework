@@ -10,14 +10,12 @@ namespace Framework.Module.Resource
 {
     public class ResourcesManager : ModuleBase, IResourceManager
     {
-        public override int Priority => -100;
-
         Dictionary<string, string> mapping;
 
-        public override void OnLoad()
+        public override async Task OnLoad()
         {
             mapping = (Resources.Load("GameSetting/AssetsNameMapping") as AssetsNameMapping).mapping;
-            base.OnLoad();
+            await base.OnLoad();
         }
         public async Task<IAsset> LoadAsync<T>(string assetName) where T : Object
         {

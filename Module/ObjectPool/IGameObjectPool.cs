@@ -6,7 +6,7 @@ namespace Framework.Module.ObjectPool
     public interface IGameObjectPool : IObjectPool<GameObject>
     {
         void SetGameObjectName(string gameObjectName);
-        void SetResManager(IResourceManager resManager);
+        void SetResourceLoader(IResourceLoader resourceLoader);
     }
 }
 

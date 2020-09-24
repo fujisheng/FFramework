@@ -12,32 +12,32 @@ namespace Framework.Module
     {
         public static IResourceManager Resource
         {
-            get { return ModuleManager.GetModule<IResourceManager>(); }
+            get { return ModuleManager.Instance.GetModule<IResourceManager>(); }
         }
 
         public static ILoopManager Loop
         {
-            get { return ModuleManager.GetModule<ILoopManager>(); }
+            get { return ModuleManager.Instance.GetModule<ILoopManager>(); }
         }
 
         public static IDatabaseManager Database
         {
-            get { return ModuleManager.GetModule<IDatabaseManager>(); }
+            get { return ModuleManager.Instance.GetModule<IDatabaseManager>(); }
         }
 
         public static IAudioManager Audio
         {
-            get { return ModuleManager.GetModule<IAudioManager>(); }
+            get { return ModuleManager.Instance.GetModule<IAudioManager>(); }
         }
 
         public static ThreadManager Thread
         {
-            get { return ModuleManager.GetModule<ThreadManager>(); }
+            get { return ModuleManager.Instance.GetModule<ThreadManager>(); }
         }
 
         public static IGameObjectPoolManager GameObjectPool
         {
-            get { return ModuleManager.GetModule<IGameObjectPoolManager>(); }
+            get { return ModuleManager.Instance.GetModule<IGameObjectPoolManager>(); }
         }
     }
 }

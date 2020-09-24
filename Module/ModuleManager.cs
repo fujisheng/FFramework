@@ -1,177 +1,128 @@
 ﻿using Framework.Utility;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace Framework.Module
 {
-    public static class ModuleManager
+    public class ModuleManager
     {
-        static List<IModule> modules;
-        static Queue<IModule> LoadQueue = new Queue<IModule>();
-        static Queue<IModule> InitQueue = new Queue<IModule>();
-        static IModule currentOperateModule;
-        static bool initComplete = false;
+        readonly List<IModule> loadedModules = new List<IModule>();
+        readonly List<IModule> initedModules = new List<IModule>();
 
-        //加载所有的module
-        public static void Load()
+        static ModuleManager instance;
+        public static ModuleManager Instance { get { return instance ??= new ModuleManager(); } }
+
+        Type[] GetModuleDependency(IModule module)
         {
-            Debug.Log("<color=blue>=======StartLoadModule=======</color>");
-            modules = InstanceFactory.CreateInstances<IModule>(null, typeof(IModule));
-            modules.Sort((IModule l, IModule r) =>
+            var dependency = module.GetType().GetCustomAttribute<Dependency>();
+            if(dependency == null)
             {
-                int lOrder = l.Priority;
-                int rOrder = r.Priority;
-                return lOrder == rOrder ? 0 : lOrder < rOrder ? -1 : 1;
-            });
+                return null;
+            }
+            return dependency.dependency;
+        }
 
-            for(int i = 0; i < modules.Count; i++)
+        bool DependIsLoad(Type dependType)
+        {
+            foreach(var modules in loadedModules)
             {
-                IModule module = modules[i];
-                LoadQueue.Enqueue(module);
-                InitQueue.Enqueue(module);
+                if (modules.GetType().IsAssignableFrom(dependType))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 添加一个模块 同一种类型的模块只允许添加一个 同时如果这个模块有依赖会自动添加依赖
+        /// </summary>
+        /// <param name="module"></param>
+        public void AddModule(IModule module)
+        {
+            foreach(var mod in loadedModules)
+            {
+                if(mod.GetType().Name == module.GetType().Name)
+                {
+                    return;
+                }
+            }
+
+            var dependency = GetModuleDependency(module);
+            if(dependency != null)
+            {
+                foreach(var depend in dependency)
+                {
+                    if (DependIsLoad(depend))
+                    {
+                        continue;
+                    }
+                    AddModule(InstanceFactory.CreateInstance<IModule>(depend.Name));
+                }
+            }
+
+            module.OnLoad();
+            Debug.Log($"<color=blue>LoadModule=>{module.GetType().Name}</color>");
+            loadedModules.Add(module);
+        }
+
+        
+
+        public void Update()
+        {
+            for(int i = 0; i < initedModules.Count; i++)
+            {
+                initedModules[i].OnUpdate();
             }
         }
 
-        static void LoadModules()
+        public void LateUpdate()
         {
-            if(LoadQueue.Count == 0)
+            for(int i = 0; i < initedModules.Count; i++)
             {
-                return;
-            }
-
-            if(currentOperateModule == null)
-            {
-                currentOperateModule = LoadQueue.Dequeue();
-                Type type = currentOperateModule.GetType();
-                Debug.Log($"<color=blue>LoadModule=>{currentOperateModule.GetType().Name}</color>");
-                currentOperateModule.OnLoad();
-            }
-
-            if(currentOperateModule.LoadComplete == true)
-            {
-                currentOperateModule = null;
+                initedModules[i].OnLateUpdate();
             }
         }
 
-        static void InitModules()
+        public void FixedUpdate()
         {
-            if(InitQueue.Count == 0)
+            for (int i = 0; i < initedModules.Count; i++)
             {
-                initComplete = true;
-                Debug.Log($"<color=blue>------------------InitModulesComplete-----------------</color>");
-                return;
-            }
-
-            if(LoadQueue.Count > 0)
-            {
-                return;
-            }
-
-            if (currentOperateModule == null)
-            {
-                currentOperateModule = InitQueue.Dequeue();
-                Type type = currentOperateModule.GetType();
-                Debug.Log($"<color=blue>InitModule=>{currentOperateModule.GetType().Name}</color>");
-                currentOperateModule.OnInit();
-            }
-
-            if (currentOperateModule.LoadComplete == true)
-            {
-                currentOperateModule = null;
+                initedModules[i].OnFixedUpdate();
             }
         }
 
-        public static void Update()
+        public void TearDown()
         {
-            if(initComplete == false)
+            for (int i = initedModules.Count - 1; i >= 0; i--)
             {
-                LoadModules();
-                InitModules();
-                return;
-            }
-
-            for(int i = 0; i < modules.Count; i++)
-            {
-                modules[i].OnUpdate();
+                initedModules[i].OnTearDown();
             }
         }
 
-        public static void LateUpdate()
+        public void ApplicationFocus(bool focus)
         {
-            if(initComplete == false)
+            for (int i = 0; i < initedModules.Count; i++)
             {
-                return;
-            }
-
-            for(int i = 0; i < modules.Count; i++)
-            {
-                modules[i].OnLateUpdate();
+                initedModules[i].OnApplicationFocus(focus);
             }
         }
 
-        public static void FixedUpdate()
+        public void ApplicationPause(bool pause)
         {
-            if (initComplete == false)
+            for (int i = 0; i < initedModules.Count; i++)
             {
-                return;
-            }
-
-            for (int i = 0; i < modules.Count; i++)
-            {
-                modules[i].OnFixedUpdate();
+                initedModules[i].OnApplicationPause(pause);
             }
         }
 
-        public static void TearDown()
+        public void ApplicationQuit()
         {
-            if (initComplete == false)
+            for (int i = 0; i < initedModules.Count; i++)
             {
-                return;
-            }
-
-            for (int i = modules.Count - 1; i >= 0; i--)
-            {
-                modules[i].OnTearDown();
-            }
-        }
-
-        public static void ApplicationFocus(bool focus)
-        {
-            if (initComplete == false)
-            {
-                return;
-            }
-
-            for (int i = modules.Count - 1; i >= 0; i--)
-            {
-                modules[i].OnApplicationFocus(focus);
-            }
-        }
-
-        public static void ApplicationPause(bool pause)
-        {
-            if (initComplete == false)
-            {
-                return;
-            }
-
-            for (int i = modules.Count - 1; i >= 0; i--)
-            {
-                modules[i].OnApplicationPause(pause);
-            }
-        }
-
-        public static void ApplicationQuit()
-        {
-            if (initComplete == false)
-            {
-                return;
-            }
-
-            for (int i = modules.Count - 1; i >= 0; i--)
-            {
-                modules[i].OnApplicationQuit();
+                initedModules[i].OnApplicationQuit();
             }
         }
 
@@ -180,18 +131,12 @@ namespace Framework.Module
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static T GetModule<T>()
+        public T GetModule<T>()
         {
-            if(modules == null)
+            for (int i = 0; i < initedModules.Count; i++)
             {
-                Debug.LogError("Moduel还没有加载完成！！！！");
-                return default;
-            }
-
-            for (int i = 0; i < modules.Count; i++)
-            {
-                var module = modules[i];
-                if(modules[i] is T)
+                var module = initedModules[i];
+                if(initedModules[i] is T)
                 {
                     return (T)module;
                 }
@@ -200,17 +145,11 @@ namespace Framework.Module
             return default;
         }
 
-        public static IModule GetModule(Type type)
+        public IModule GetModule(Type type)
         {
-            if (modules == null)
+            for(int i = 0; i < initedModules.Count; i++)
             {
-                Debug.LogError("Moduel还没有加载完成！！！！");
-                return default;
-            }
-
-            for(int i = 0; i < modules.Count; i++)
-            {
-                var module = modules[i];
+                var module = initedModules[i];
                 if (module.GetType().IsAssignableFrom(type))
                 {
                     return module;

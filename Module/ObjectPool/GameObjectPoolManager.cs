@@ -16,10 +16,11 @@ namespace Framework.Module.ObjectPool
 
         GameObject cacheRoot;
 
-        public override void OnInit()
+        public override async Task OnLoad()
         {
-            base.OnInit();
-            cacheRoot = new GameObject("[GameObjectPoolCache]");
+            cacheRoot = new GameObject("[GameObjectPool]");
+            Object.DontDestroyOnLoad(cacheRoot);
+            await base.OnLoad();
         }
 
         public override void OnLateUpdate()

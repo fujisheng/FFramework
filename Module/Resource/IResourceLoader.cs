@@ -9,6 +9,8 @@ namespace Framework.Module.Resource
         Task<T> GetAsync<T>(string assetName) where T : Object;
         T Get<T>(string assetName) where T : Object;
         GameObject Instantiate(string assetName);
+        Task<GameObject> InstantiateAsync(string assetName);
+        void DestroyGameObject(GameObject gameObject);
         void Release();
     }
 }

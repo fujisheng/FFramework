@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Framework.Module.Unity.Timer
@@ -12,10 +13,10 @@ namespace Framework.Module.Unity.Timer
 
         List<Action<long>> tickerList = new List<Action<long>>();
 
-        public override void OnInit()
+        public override async Task OnInit()
         {
             currentTime = GetTimeStamp(false);
-            base.OnInit();
+            await base.OnInit();
         }
 
         long GetTimeStamp(bool bflag)

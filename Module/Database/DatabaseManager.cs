@@ -1,21 +1,20 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Framework.Module.Database
 {
     public class DatabaseManager : ModuleBase, IDatabaseManager
     {
-        public override int Priority => -100;
-
         Dictionary<string, IDatabase> databaseMap = new Dictionary<string, IDatabase>();
 
-        public override void OnLoad()
+        public override async Task OnLoad()
         {
             IDatabase userData = new SqliteDatabase("userData", Application.persistentDataPath);
             IDatabase levelsData = new SqliteDatabase("levelsData");
             AddDatabase(userData);
             AddDatabase(levelsData);
-            base.OnLoad();
+            await base.OnLoad();
         }
 
         public void AddDatabase(IDatabase database)

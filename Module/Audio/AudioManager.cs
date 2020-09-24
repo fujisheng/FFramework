@@ -5,17 +5,20 @@ using UnityEngine;
 
 namespace Framework.Module.Audio
 {
+    [Dependency(typeof(IResourceManager))]
     public class AudioManager : ModuleBase, IAudioManager
     {
         float volume = 1f;
 
         ConcurrentDictionary<string, AudioClip> Clips = new ConcurrentDictionary<string, AudioClip>();
         ConcurrentDictionary<int, IAudioChannel> Channels = new ConcurrentDictionary<int, IAudioChannel>();
+        IResourceLoader resourceLoader;
 
-        public override void OnInit()
+        public override async Task OnInit()
         {
+            resourceLoader = new ResourceLoader();
             InitChannel(5);
-            base.OnInit();
+            await base.OnInit();
         }
 
         void InitChannel(int count)
@@ -58,10 +61,9 @@ namespace Framework.Module.Audio
                 return Clips[clipName];
             }
 
-            IAsset asset = await ModuleManager.GetModule<IResourceManager>().LoadAsync<AudioClip>(clipName);
-            Clips.TryAdd(clipName, asset.asset as AudioClip);
-            asset.Retain();
-            return asset.asset as AudioClip;
+            var asset = await resourceLoader.GetAsync<AudioClip>(clipName);
+            Clips.TryAdd(clipName, asset);
+            return asset;
         }
 
         public void SetChannelIgnoreTimeScale(int channelId, bool ingnore)
@@ -159,6 +161,12 @@ namespace Framework.Module.Audio
             }
 
             this.volume = volume;
+        }
+
+        public override void OnTearDown()
+        {
+            resourceLoader.Release();
+            base.OnTearDown();
         }
     }
 }

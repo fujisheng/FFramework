@@ -8,43 +8,42 @@ namespace Framework
         private void Awake()
         {
             Application.targetFrameRate = 144;
-
-            ModuleManager.Load();
+            DontDestroyOnLoad(gameObject);
         }
 
         private void Update()
         {
-            ModuleManager.Update();
+            ModuleManager.Instance.Update();
         }
 
         private void LateUpdate()
         {
-            ModuleManager.LateUpdate();
+            ModuleManager.Instance.LateUpdate();
         }
 
         private void FixedUpdate()
         {
-            ModuleManager.FixedUpdate();
+            ModuleManager.Instance.FixedUpdate();
         }
 
         private void OnDestroy()
         {
-            ModuleManager.TearDown();
+            ModuleManager.Instance.TearDown();
         }
 
         private void OnApplicationFocus(bool focus)
         {
-            ModuleManager.ApplicationFocus(focus);
+            ModuleManager.Instance.ApplicationFocus(focus);
         }
 
         private void OnApplicationPause(bool pause)
         {
-            ModuleManager.ApplicationPause(pause);
+            ModuleManager.Instance.ApplicationPause(pause);
         }
 
         private void OnApplicationQuit()
         {
-            ModuleManager.ApplicationQuit();
+            ModuleManager.Instance.ApplicationQuit();
         }
     }
 }
