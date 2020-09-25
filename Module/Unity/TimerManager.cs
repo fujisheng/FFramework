@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Framework.Module.Unity.Timer
 {
-    public class TimerManager : ModuleBase
+    internal sealed class TimerManager : Module
     {
         //当前时间的时间戳  单位是秒
         long currentTime = 0;
@@ -13,7 +13,7 @@ namespace Framework.Module.Unity.Timer
 
         List<Action<long>> tickerList = new List<Action<long>>();
 
-        public override async Task OnInit()
+        internal override async Task OnInit()
         {
             currentTime = GetTimeStamp(false);
             await base.OnInit();
@@ -43,7 +43,7 @@ namespace Framework.Module.Unity.Timer
             }
         }
 
-        public override void OnLateUpdate()
+        internal override void OnLateUpdate()
         {
             passTime += Time.fixedDeltaTime;
             if(passTime >= 1)

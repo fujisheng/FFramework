@@ -2,7 +2,7 @@
 
 namespace Framework.Module.Unity.Loop
 {
-    public class LoopManager : ModuleBase, ILoopManager
+    internal sealed class LoopManager : Module, ILoopManager
     {
         List<System.Action> updateList = new List<System.Action>();
         List<System.Action> lateUpdateList = new List<System.Action>();
@@ -62,7 +62,7 @@ namespace Framework.Module.Unity.Loop
             }
         }
 
-        public override void OnUpdate()
+        internal override void OnUpdate()
         {
             for (int i = 0; i < updateList.Count; i++)
             {
@@ -70,7 +70,7 @@ namespace Framework.Module.Unity.Loop
             }
         }
 
-        public override void OnLateUpdate()
+        internal override void OnLateUpdate()
         {
             for (int i = 0; i < lateUpdateList.Count; i++)
             {
@@ -78,7 +78,7 @@ namespace Framework.Module.Unity.Loop
             }
         }
 
-        public override void OnFixedUpdate()
+        internal override void OnFixedUpdate()
         {
             for(int i = 0; i < fixedUpdateList.Count; i++)
             {
@@ -86,7 +86,7 @@ namespace Framework.Module.Unity.Loop
             }
         }
 
-        public override void OnTearDown()
+        internal override void OnTearDown()
         {
             updateList.Clear();
             fixedUpdateList.Clear();

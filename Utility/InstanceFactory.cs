@@ -1,35 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 
 namespace Framework.Utility
 {
     public static class InstanceFactory
     {
-        static Assembly _assembly;
-
-        static Assembly assembly
-        {
-            get
-            {
-                return _assembly ?? (_assembly = Assembly.GetExecutingAssembly());
-            }
-        }
-
-        static Type[] types;
-
-        static Type[] Types
-        {
-            get
-            {
-                return types ?? (types = assembly.GetTypes());
-            }
-        }
-
-        static Dictionary<string, Type> TypeNames = new Dictionary<string, Type>();
-        
-
         static bool Conditional(Type type, Type baseType, Type interfaceType)
         {
             if (type.IsAbstract || type.IsNotPublic)
@@ -53,7 +29,7 @@ namespace Framework.Utility
         public static List<T> CreateInstances<T>(Type baseType, Type interfaceType = null, bool nonPublic = false)
         {
             List<T> ret = new List<T>();
-            foreach (var type in Types)
+            foreach (var type in AssemblyUtility.GetTypes())
             {
                 if (!Conditional(type, baseType, interfaceType))
                 {
@@ -80,7 +56,7 @@ namespace Framework.Utility
 
         public static T CreateInstance<T>(string typeName, bool nonPulic = false)
         {
-            Type type = GetTypeByName(typeName);
+            Type type = AssemblyUtility.GetType(typeName);
 
             object instance = Activator.CreateInstance(type, nonPulic);
 
@@ -91,25 +67,6 @@ namespace Framework.Utility
 
             Debug.LogWarningFormat("创建Instance失败   typeName=>{0}", typeName);
             return default;
-        }
-
-        public static Type GetTypeByName(string typeName)
-        {
-            if (TypeNames.ContainsKey(typeName))
-            {
-                return TypeNames[typeName];
-            }
-
-            foreach (var type in Types)
-            {
-                if (type.Name == typeName)
-                {
-                    TypeNames.Add(typeName, type);
-                    return type;
-                }
-            }
-
-            return null;
         }
     }
 }

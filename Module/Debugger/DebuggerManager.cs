@@ -1,6 +1,6 @@
 ﻿namespace Framework.Module.Debugger
 {
-    public class DebuggerManager : ModuleBase, IDebugManager
+    internal sealed class DebuggerManager : Module, IDebugManager
     {
         IDebugger debugger;
         int level = (int)DebugLevel.All;

@@ -1,10 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Framework.Module.Audio
 {
-    public class AudioChannel : IAudioChannel
+    public class AudioChannel
     {
         public int ChannelId { get; private set; }
         AudioSource source;
@@ -18,6 +16,7 @@ namespace Framework.Module.Audio
             if (gameObject == null)
             {
                 gameObject = new GameObject("[AudioChannel]");
+                Object.DontDestroyOnLoad(gameObject);
             }
 
             source = gameObject.AddComponent<AudioSource>();

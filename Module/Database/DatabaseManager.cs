@@ -4,11 +4,11 @@ using UnityEngine;
 
 namespace Framework.Module.Database
 {
-    public class DatabaseManager : ModuleBase, IDatabaseManager
+    internal sealed class DatabaseManager : Module, IDatabaseManager
     {
         Dictionary<string, IDatabase> databaseMap = new Dictionary<string, IDatabase>();
 
-        public override async Task OnLoad()
+        internal override async Task OnLoad()
         {
             IDatabase userData = new SqliteDatabase("userData", Application.persistentDataPath);
             IDatabase levelsData = new SqliteDatabase("levelsData");
@@ -78,7 +78,7 @@ namespace Framework.Module.Database
             return database.ExecuteString(queryStr);
         }
 
-        public override void OnTearDown()
+        internal override void OnTearDown()
         {
             Disconnect();
         }

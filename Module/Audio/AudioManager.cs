@@ -6,15 +6,15 @@ using UnityEngine;
 namespace Framework.Module.Audio
 {
     [Dependency(typeof(IResourceManager))]
-    public class AudioManager : ModuleBase, IAudioManager
+    internal sealed class AudioManager : Module, IAudioManager
     {
         float volume = 1f;
 
         ConcurrentDictionary<string, AudioClip> Clips = new ConcurrentDictionary<string, AudioClip>();
-        ConcurrentDictionary<int, IAudioChannel> Channels = new ConcurrentDictionary<int, IAudioChannel>();
+        ConcurrentDictionary<int, AudioChannel> Channels = new ConcurrentDictionary<int, AudioChannel>();
         IResourceLoader resourceLoader;
 
-        public override async Task OnInit()
+        internal override async Task OnInit()
         {
             resourceLoader = new ResourceLoader();
             InitChannel(5);
@@ -29,7 +29,7 @@ namespace Framework.Module.Audio
             }
         }
 
-        IAudioChannel GetChannel(int channelId)
+        AudioChannel GetChannel(int channelId)
         {
             if (Channels.ContainsKey(channelId))
             {
@@ -68,14 +68,14 @@ namespace Framework.Module.Audio
 
         public void SetChannelIgnoreTimeScale(int channelId, bool ingnore)
         {
-            IAudioChannel channel = GetChannel(channelId);
+            AudioChannel channel = GetChannel(channelId);
             channel.IgnoreTimeScale(ingnore);
         }
 
         public async void PlayAudio(int channelId, string clipName)
         {
             AudioClip clip = await GetAudioClip(clipName);
-            IAudioChannel channel = GetChannel(channelId);
+            AudioChannel channel = GetChannel(channelId);
             channel.PlayClip(clip);
             //channel.Volume = volume;
         }
@@ -108,7 +108,7 @@ namespace Framework.Module.Audio
                 }
             }
 
-            IAudioChannel newChannel = GetChannel(maxChannel + 1);
+            AudioChannel newChannel = GetChannel(maxChannel + 1);
             newChannel.PlayClip(clip);
             newChannel.Volume = volume;
         }
@@ -163,7 +163,7 @@ namespace Framework.Module.Audio
             this.volume = volume;
         }
 
-        public override void OnTearDown()
+        internal override void OnTearDown()
         {
             resourceLoader.Release();
             base.OnTearDown();

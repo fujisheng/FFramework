@@ -2,9 +2,14 @@
 
 namespace Framework
 {
-    public interface IAsyncObjectPool<T> : IObjectPool<T>
+    public interface IAsyncObjectPool<T>
     {
-        new Task<T> Pop();
-        new Task<T> New();
+        int Size { get; }
+        int Count { get; }
+        float LastUseTime { get; }
+        void SetSize(int size);
+        void Push(T obj);
+        Task<T> New();
+        Task<T> Pop();
     }
 }

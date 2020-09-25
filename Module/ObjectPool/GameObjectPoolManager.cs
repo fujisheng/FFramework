@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Framework.Module.ObjectPool
 {
-    public class GameObjectPoolManager : ModuleBase, IGameObjectPoolManager
+    internal sealed class GameObjectPoolManager : Module, IGameObjectPoolManager
     {
         Dictionary<string, GameObjectPool> pools = new Dictionary<string, GameObjectPool>();
         GameObjectPoolPool cachePool = new GameObjectPoolPool();
@@ -16,14 +16,14 @@ namespace Framework.Module.ObjectPool
 
         GameObject cacheRoot;
 
-        public override async Task OnLoad()
+        internal override async Task OnLoad()
         {
             cacheRoot = new GameObject("[GameObjectPool]");
             Object.DontDestroyOnLoad(cacheRoot);
             await base.OnLoad();
         }
 
-        public override void OnLateUpdate()
+        internal override void OnLateUpdate()
         {
             if (Time.realtimeSinceStartup - lastCheckTime >= checkTime)
             {

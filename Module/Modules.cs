@@ -1,10 +1,9 @@
-﻿using Framework.Module;
+﻿using Framework.Module.Audio;
 using Framework.Module.Database;
+using Framework.Module.ObjectPool;
 using Framework.Module.Resource;
 using Framework.Module.Unity.Loop;
-using Framework.Module.Audio;
 using Framework.Module.Unity.Threading;
-using Framework.Module.ObjectPool;
 
 namespace Framework.Module
 {
@@ -30,10 +29,10 @@ namespace Framework.Module
             get { return ModuleManager.Instance.GetModule<IAudioManager>(); }
         }
 
-        public static ThreadManager Thread
-        {
-            get { return ModuleManager.Instance.GetModule<ThreadManager>(); }
-        }
+        //public static ThreadManager Thread
+        //{
+        //    get { return ModuleManager.Instance.GetModule<ThreadManager>(); }
+        //}
 
         public static IGameObjectPoolManager GameObjectPool
         {

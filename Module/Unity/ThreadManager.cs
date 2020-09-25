@@ -6,13 +6,13 @@ using UnityEngine;
 
 namespace Framework.Module.Unity.Threading
 {
-    public struct DelayedQueueItem
+    struct DelayedQueueItem
     {
         public float time;
         public Action action;
     }
 
-    public class ThreadManager : ModuleBase
+    internal sealed class ThreadManager : Module
     {
         public static int maxThreads = 8;
         static int numThreads;
@@ -70,7 +70,7 @@ namespace Framework.Module.Unity.Threading
             }
         }
 
-        public override void OnUpdate()
+        internal override void OnUpdate()
         {
             lock (actions)
             {

@@ -2,16 +2,16 @@
 
 namespace Framework.Module
 {
-    public abstract class ModuleBase : IModule
+    internal abstract class Module 
     {
-        public virtual async Task OnLoad() { }
-        public virtual async Task OnInit() { }
-        public virtual void OnUpdate() { }
-        public virtual void OnLateUpdate() { }
-        public virtual void OnFixedUpdate() { }
-        public virtual void OnTearDown() { }
-        public virtual void OnApplicationFocus(bool focus) { }
-        public virtual void OnApplicationPause(bool pause) { }
-        public virtual void OnApplicationQuit() { }
+        internal virtual async Task OnLoad() { }
+        internal virtual async Task OnInit() { }
+        internal virtual void OnUpdate() { }
+        internal virtual void OnLateUpdate() { }
+        internal virtual void OnFixedUpdate() { }
+        internal virtual void OnTearDown() { }
+        internal virtual void OnApplicationFocus(bool focus) { }
+        internal virtual void OnApplicationPause(bool pause) { }
+        internal virtual void OnApplicationQuit() { }
     }
 }

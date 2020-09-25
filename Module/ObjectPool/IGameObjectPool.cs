@@ -3,7 +3,7 @@ using Framework.Module.Resource;
 
 namespace Framework.Module.ObjectPool
 {
-    public interface IGameObjectPool : IObjectPool<GameObject>
+    internal interface IGameObjectPool
     {
         void SetGameObjectName(string gameObjectName);
         void SetResourceLoader(IResourceLoader resourceLoader);

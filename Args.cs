@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 
 namespace Framework
@@ -12,8 +11,6 @@ namespace Framework
         IArgs SetFloat(string paramName, float value);
         IArgs SetBool(string paramName, bool value);
         IArgs SetString(string paramName, string value);
-
-        void Delete(string paramName);
 
         T GetObject<T>(string paramName);
         int GetInt(string paramName);
@@ -33,7 +30,13 @@ namespace Framework
         Dictionary<string, bool> boolArgs = new Dictionary<string, bool>();
         Dictionary<string, string> stringArgs = new Dictionary<string, string>();
 
-        public static Args Empty { get; }
+        List<Type> cantSetToObjectTypes = new List<Type>
+        {
+            typeof(int),
+            typeof(float),
+            typeof(bool),
+            typeof(string),
+        };
 
         public bool IsDestroy { get ; private set; }
 
@@ -59,6 +62,12 @@ namespace Framework
 
         public IArgs SetObject(string paramName, object value)
         {
+            var valueType = value.GetType();
+            if (cantSetToObjectTypes.Contains(valueType))
+            {
+                throw new Exception($"value type is {valueType}, cant set to object list");
+            }
+
             return Set(objectArgs, paramName, value);
         }
 
@@ -160,11 +169,24 @@ namespace Framework
             return result;
         }
 
-        public void Dispose()
+        public void Retain()
         {
-            Release();
+            RefCount++;
+        }
 
-            if(RefCount > 0)
+        public static IArgs Ctor
+        {
+            get
+            {
+                return ArgsPool.Pop();
+            }
+        }
+
+        public void Release()
+        {
+            RefCount--;
+
+            if (RefCount > 0)
             {
                 return;
             }
@@ -178,26 +200,11 @@ namespace Framework
             IsDestroy = true;
             ArgsPool.Push(this);
         }
-
-        public void Delete(string paramName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Retain()
-        {
-            RefCount++;
-        }
-
-        public void Release()
-        {
-            RefCount--;
-        }
     }
 
-    public static class ArgsPool
+    static class ArgsPool
     {
-        public static int MaxCount = 100;
+        static int MaxCount = 100;
         static Stack<IArgs> pool = new Stack<IArgs>();
 
         public static IArgs Pop()
@@ -214,40 +221,10 @@ namespace Framework
         }
 
         /// <summary>
-        /// 将一个对象转换成IArgs
-        /// </summary>
-        /// <returns>The object.</returns>
-        /// <param name="obj">Object.</param>
-        /// <typeparam name="T">The 1st type parameter.</typeparam>
-        public static IArgs FromObject<T>(T obj)
-        {
-            IArgs args = Pop();
-            Type type = obj.GetType();
-
-            if (type.IsValueType || type.IsGenericType)
-            {
-                args.SetObject("value", obj);
-            }
-            else
-            {
-                FieldInfo[] fieldInfos = obj.GetType().GetFields();
-                foreach (var field in fieldInfos)
-                {
-                    string fieldName = field.Name;
-                    object value = field.GetValue(obj);
-                    Debug.LogFormat("fieldName=>{0}", fieldName);
-                    args.SetObject(fieldName, value);
-                }
-            }
-
-            return args;
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="args">Arguments.</param>
-        internal static void Push(IArgs args)
+        public static void Push(IArgs args)
         {
             if (pool.Contains(args))
             {

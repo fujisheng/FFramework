@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -28,7 +27,7 @@ namespace Framework
 
             pool.Push(obj);
         }
-
+        public abstract Task<TObject> New();
         public async Task<TObject> Pop()
         {
             LastUseTime = Time.realtimeSinceStartup;
@@ -43,18 +42,6 @@ namespace Framework
         public virtual void Dispose()
         {
             pool.Clear();
-        }
-
-        public abstract Task<TObject> New();
-
-        TObject IObjectPool<TObject>.New()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        TObject IObjectPool<TObject>.Pop()
-        {
-            throw new System.NotImplementedException();
         }
     }
 }

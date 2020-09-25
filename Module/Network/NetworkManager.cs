@@ -1,9 +1,8 @@
-﻿using Framework.Module.ObjectPool;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Framework.Module.Network
 {
-    public class NetworkManager : ModuleBase
+    internal sealed class NetworkManager : Module
     {
         IConnector connector;
         IPacker packer;
@@ -76,7 +75,7 @@ namespace Framework.Module.Network
             connector.Send(result);
         }
 
-        public override void OnUpdate()
+        internal override void OnUpdate()
         {
             connector?.OnUpdate();
         }

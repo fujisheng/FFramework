@@ -8,11 +8,11 @@ using WaitUntil = Framework.Awaiting.WaitUntil;
 
 namespace Framework.Module.Resource
 {
-    public class ResourcesManager : ModuleBase, IResourceManager
+    internal sealed class ResourcesManager : Module, IResourceManager
     {
         Dictionary<string, string> mapping;
 
-        public override async Task OnLoad()
+        internal override async Task OnLoad()
         {
             mapping = (Resources.Load("GameSetting/AssetsNameMapping") as AssetsNameMapping).mapping;
             await base.OnLoad();

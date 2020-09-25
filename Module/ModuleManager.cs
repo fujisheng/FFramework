@@ -8,15 +8,15 @@ namespace Framework.Module
 {
     public class ModuleManager
     {
-        readonly List<IModule> loadedModules = new List<IModule>();
-        readonly List<IModule> initedModules = new List<IModule>();
+        readonly List<Module> loadedModules = new List<Module>();
+        readonly List<Module> initedModules = new List<Module>();
 
         static ModuleManager instance;
         public static ModuleManager Instance { get { return instance ??= new ModuleManager(); } }
 
-        Type[] GetModuleDependency(IModule module)
+        Type[] GetModuleDependency(Type moduleType)
         {
-            var dependency = module.GetType().GetCustomAttribute<Dependency>();
+            var dependency = moduleType.GetCustomAttribute<Dependency>();
             if(dependency == null)
             {
                 return null;
@@ -40,26 +40,33 @@ namespace Framework.Module
         /// 添加一个模块 同一种类型的模块只允许添加一个 同时如果这个模块有依赖会自动添加依赖
         /// </summary>
         /// <param name="module"></param>
-        public void AddModule(IModule module)
+        public void AddModule<T>()
         {
-            foreach(var mod in loadedModules)
+            var moduleType = typeof(T);
+            AddModule(InstanceFactory.CreateInstance<Module>(moduleType.Name));
+        }
+
+        void AddModule(Module module)
+        {
+            var moduleType = module.GetType();
+            foreach (var mod in loadedModules)
             {
-                if(mod.GetType().Name == module.GetType().Name)
+                if (mod.GetType().Name == moduleType.Name)
                 {
                     return;
                 }
             }
 
-            var dependency = GetModuleDependency(module);
-            if(dependency != null)
+            var dependency = GetModuleDependency(moduleType);
+            if (dependency != null)
             {
-                foreach(var depend in dependency)
+                foreach (var depend in dependency)
                 {
                     if (DependIsLoad(depend))
                     {
                         continue;
                     }
-                    AddModule(InstanceFactory.CreateInstance<IModule>(depend.Name));
+                    AddModule(InstanceFactory.CreateInstance<Module>(depend.Name));
                 }
             }
 
@@ -68,9 +75,28 @@ namespace Framework.Module
             loadedModules.Add(module);
         }
 
-        
+        /// <summary>
+        /// 获取一个module
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T GetModule<T>() where T : class
+        {
+            for (int i = 0; i < initedModules.Count; i++)
+            {
+                var module = initedModules[i];
+                if (initedModules[i] is T)
+                {
+                    return module as T;
+                }
+            }
 
-        public void Update()
+            return default;
+        }
+
+
+
+        internal void Update()
         {
             for(int i = 0; i < initedModules.Count; i++)
             {
@@ -78,7 +104,7 @@ namespace Framework.Module
             }
         }
 
-        public void LateUpdate()
+        internal void LateUpdate()
         {
             for(int i = 0; i < initedModules.Count; i++)
             {
@@ -86,7 +112,7 @@ namespace Framework.Module
             }
         }
 
-        public void FixedUpdate()
+        internal void FixedUpdate()
         {
             for (int i = 0; i < initedModules.Count; i++)
             {
@@ -94,7 +120,7 @@ namespace Framework.Module
             }
         }
 
-        public void TearDown()
+        internal void TearDown()
         {
             for (int i = initedModules.Count - 1; i >= 0; i--)
             {
@@ -102,7 +128,7 @@ namespace Framework.Module
             }
         }
 
-        public void ApplicationFocus(bool focus)
+        internal void ApplicationFocus(bool focus)
         {
             for (int i = 0; i < initedModules.Count; i++)
             {
@@ -110,7 +136,7 @@ namespace Framework.Module
             }
         }
 
-        public void ApplicationPause(bool pause)
+        internal void ApplicationPause(bool pause)
         {
             for (int i = 0; i < initedModules.Count; i++)
             {
@@ -118,45 +144,12 @@ namespace Framework.Module
             }
         }
 
-        public void ApplicationQuit()
+        internal void ApplicationQuit()
         {
             for (int i = 0; i < initedModules.Count; i++)
             {
                 initedModules[i].OnApplicationQuit();
             }
-        }
-
-        /// <summary>
-        /// 获取一个module
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public T GetModule<T>()
-        {
-            for (int i = 0; i < initedModules.Count; i++)
-            {
-                var module = initedModules[i];
-                if(initedModules[i] is T)
-                {
-                    return (T)module;
-                }
-            }
-
-            return default;
-        }
-
-        public IModule GetModule(Type type)
-        {
-            for(int i = 0; i < initedModules.Count; i++)
-            {
-                var module = initedModules[i];
-                if (module.GetType().IsAssignableFrom(type))
-                {
-                    return module;
-                }
-            }
-
-            return default;
         }
     }
 }

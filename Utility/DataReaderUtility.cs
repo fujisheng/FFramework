@@ -6,6 +6,11 @@ namespace Framework.Utility
 {
     public static class DataReaderUtility
     {
+        /// <summary>
+        /// 将DataReader里面的数据转换成Dictionary
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <returns></returns>
         public static Dictionary<int,Dictionary<string,object>> ReaderToDictionarys(IDataReader reader)
         {
             if (reader == null)

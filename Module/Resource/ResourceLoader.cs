@@ -17,11 +17,6 @@ namespace Framework.Module.Resource
             resourceManager = ModuleManager.Instance.GetModule<IResourceManager>();
         }
 
-        public void SetResourceManager(IResourceManager resourceManager)
-        {
-            this.resourceManager = resourceManager;
-        }
-
         public async Task<T> GetAsync<T>(string assetName) where T : Object
         {
             IAsset result;

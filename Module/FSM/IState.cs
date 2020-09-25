@@ -11,5 +11,6 @@ namespace Framework.Module.FSM
         void OnDestroy(IFSM<T> fsm);
         void ChangeState<TState>(IFSM<T> fsm) where TState : IState<T>;
         void ChangeState(IFSM<T> fsm, Type stateType);
+        void OnEvent(IFSM<T> fsm, object sender, int eventId, object args);
     }
 }
