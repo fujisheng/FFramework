@@ -45,5 +45,10 @@ namespace Framework.Module.FSM
 
             fsmImplement.ChangeState(stateType);
         }
+
+        public void OnEvent(IFSM<T> fsm, object sender, int eventId, object args)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
