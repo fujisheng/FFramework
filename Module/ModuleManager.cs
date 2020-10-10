@@ -12,7 +12,7 @@ namespace Framework.Module
         readonly List<Module> initedModules = new List<Module>();
 
         static ModuleManager instance;
-        public static ModuleManager Instance { get { return instance ??= new ModuleManager(); } }
+        public static ModuleManager Instance { get { return instance ?? (instance = new ModuleManager()); } }
 
         Type[] GetModuleDependency(Type moduleType)
         {

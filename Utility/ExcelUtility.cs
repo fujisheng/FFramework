@@ -120,7 +120,7 @@ namespace Framework.Utility
             }
 
             //生成Json字符串
-            string json = JsonUtility.ToJson(table);
+            string json = ""; // JsonUtility.ToJson(table);
             //string json = JsonConvert.SerializeObject(table, Newtonsoft.Json.Formatting.Indented);
             //写入文件
             using (FileStream fileStream = new FileStream(JsonPath, FileMode.Create, FileAccess.Write))
