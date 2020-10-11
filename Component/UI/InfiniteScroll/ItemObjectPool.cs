@@ -7,7 +7,7 @@ namespace Framework.Component.UI
 {
     public class ItemObjectPool : ObjectPool<RectTransform>
     {
-        public override RectTransform New()
+        protected override RectTransform New()
         {
             throw new System.NotImplementedException();
         }

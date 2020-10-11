@@ -5,7 +5,8 @@ namespace Framework.Module.Resource
 {
     public interface IResourceManager
     {
-        IAsset LoadSync<T>(string assetName) where T : Object;
-        Task<IAsset> LoadAsync<T>(string assetName) where T : Object;
+        T LoadSync<T>(string assetName) where T : Object;
+        Task<T> LoadAsync<T>(string assetName) where T : Object;
+        Task<GameObject> InstantiateAsync(string assetName);
     }
 }

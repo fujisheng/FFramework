@@ -19,7 +19,7 @@ namespace Framework.Module.Message
         public static void SendMessage(string message, IArgs args = null)
         {
             center.SendMessage(message, args);
-            ArgsPool.Push(args);
+            args.Release();
         }
     }
 }

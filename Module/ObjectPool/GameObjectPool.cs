@@ -13,13 +13,13 @@ namespace Framework.Module.ObjectPool
 
         public GameObjectPool()
         {
-            resourceLoader = new ResourceLoader();
+            resourceLoader = ResourceLoader.Ctor();
         }
 
         public GameObjectPool(string gameObjectName)
         {
             this.gameObjectName = gameObjectName;
-            resourceLoader = new ResourceLoader();
+            resourceLoader = ResourceLoader.Ctor();
         }
 
         public void SetGameObjectName(string gameObjectName)
@@ -37,7 +37,7 @@ namespace Framework.Module.ObjectPool
         }
 
 
-        public override async Task<GameObject> New()
+        protected override async Task<GameObject> New()
         {
             if (string.IsNullOrEmpty(gameObjectName))
             {

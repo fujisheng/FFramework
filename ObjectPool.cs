@@ -43,7 +43,7 @@ namespace Framework
             pool.Clear();
         }
 
-        public abstract TObject New();
+        protected abstract TObject New();
     }
 }
 

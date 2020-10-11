@@ -4,7 +4,7 @@ namespace Framework.Module.Database
     internal class StringBuilderPool : ObjectPool<StringBuilder>
     {
         public override int Size => 10;
-        public override StringBuilder New()
+        protected override StringBuilder New()
         {
             return new StringBuilder();
         }

@@ -16,7 +16,7 @@ namespace Framework.Module.Audio
 
         internal override async Task OnInit()
         {
-            resourceLoader = new ResourceLoader();
+            resourceLoader = ResourceLoader.Ctor();
             InitChannel(5);
             await base.OnInit();
         }

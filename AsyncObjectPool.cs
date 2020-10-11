@@ -27,7 +27,7 @@ namespace Framework
 
             pool.Push(obj);
         }
-        public abstract Task<TObject> New();
+        protected abstract Task<TObject> New();
         public async Task<TObject> Pop()
         {
             LastUseTime = Time.realtimeSinceStartup;

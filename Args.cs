@@ -24,6 +24,24 @@ namespace Framework
 
     public class Args : IArgs
     {
+        class ArgsPool : ObjectPool<Args>
+        {
+            protected override Args New()
+            {
+                return new Args();
+            }
+        }
+        static ArgsPool pool;
+
+        public static Args Ctor()
+        {
+            pool = pool ?? (pool = new ArgsPool());
+            return pool.Pop();
+        }
+
+        //只能通过对象池来创建
+        Args() { }
+
         Dictionary<string, object> objectArgs = new Dictionary<string, object>();
         Dictionary<string, int> intArgs = new Dictionary<string, int>();
         Dictionary<string, float> floatArgs = new Dictionary<string, float>();
@@ -38,7 +56,7 @@ namespace Framework
             typeof(string),
         };
 
-        public bool IsDestroy { get ; private set; }
+        public bool IsDestroy { get; private set; }
 
         public bool IsUnused { get { return RefCount <= 0; } }
 
@@ -94,7 +112,7 @@ namespace Framework
 
         T Get<T>(Dictionary<string, T> dic, string paramName)
         {
-            if(IsDestroy == true)
+            if (IsDestroy == true)
             {
                 Debug.LogErrorFormat("尝试获取一个已经被放回对象池的Args的参数");
                 return default;
@@ -174,14 +192,6 @@ namespace Framework
             RefCount++;
         }
 
-        public static IArgs Ctor
-        {
-            get
-            {
-                return ArgsPool.Pop();
-            }
-        }
-
         public void Release()
         {
             RefCount--;
@@ -198,44 +208,7 @@ namespace Framework
             stringArgs.Clear();
 
             IsDestroy = true;
-            ArgsPool.Push(this);
-        }
-    }
-
-    static class ArgsPool
-    {
-        static int MaxCount = 100;
-        static Stack<IArgs> pool = new Stack<IArgs>();
-
-        public static IArgs Pop()
-        {
-            if(pool.Count > 0)
-            {
-                IArgs args = pool.Pop();
-                return args;
-            }
-            else
-            {
-                return new Args();
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="args">Arguments.</param>
-        public static void Push(IArgs args)
-        {
-            if (pool.Contains(args))
-            {
-                return;
-            }
-
-            if (pool.Count < MaxCount)
-            {
-                pool.Push(args);
-                return;
-            }
+            pool.Push(this);
         }
     }
 }

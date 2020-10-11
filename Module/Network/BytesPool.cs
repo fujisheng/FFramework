@@ -8,7 +8,7 @@
         {
             this.MAX_READ = maxRead;
         }
-        public override byte[] New()
+        protected override byte[] New()
         {
             return new byte[MAX_READ];
         }

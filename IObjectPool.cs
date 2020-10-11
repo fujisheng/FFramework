@@ -9,7 +9,6 @@ namespace Framework
         float LastUseTime { get; }
         void SetSize(int size);
         void Push(T obj);
-        T New();
         T Pop();
     }
 }
