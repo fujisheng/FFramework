@@ -13,6 +13,8 @@ namespace Framework.Module.FSM
         float CurrentStateTime{ get;}
         void Start<TState>() where TState : IState<T>;
         void Start(Type stateType);
+        void ChangeState<TState>() where TState : IState<T>;
+        void ChangeState(Type stateType);
         bool HasState<TState>() where TState : IState<T>;
         bool HasState(Type stateType);
         TState GetState<TState>() where TState : IState<T>;

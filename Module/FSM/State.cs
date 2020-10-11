@@ -50,5 +50,10 @@ namespace Framework.Module.FSM
         {
             throw new NotImplementedException();
         }
+
+        public void OnEvent(IFSM<T> fsm, object sender, int eventId, object args)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

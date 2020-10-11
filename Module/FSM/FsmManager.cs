@@ -53,7 +53,7 @@ namespace Framework.Module.FSM
 
         public bool HasFSM<T>() where T : class
         {
-            return InternalHasFsm(typeof(T).FullName);
+            return InternalHasFSM(typeof(T).FullName);
         }
 
         public bool HasFSM(Type ownerType)
@@ -63,12 +63,12 @@ namespace Framework.Module.FSM
                 throw new Exception("Owner type is invalid.");
             }
 
-            return InternalHasFsm(ownerType.FullName);
+            return InternalHasFSM(ownerType.FullName);
         }
 
         public bool HasFSM<T>(string name) where T : class
         {
-            return InternalHasFsm(name);
+            return InternalHasFSM(name);
         }
 
         public bool HasFsm(Type ownerType, string name)
@@ -78,12 +78,12 @@ namespace Framework.Module.FSM
                 throw new Exception("Owner type is invalid.");
             }
 
-            return InternalHasFsm(ownerType.FullName);
+            return InternalHasFSM(ownerType.FullName);
         }
 
         public IFSM<T> GetFSM<T>() where T : class
         {
-            return (IFSM<T>)InternelGetFsm(typeof(T).FullName);
+            return (IFSM<T>)InternelGetFSM(typeof(T).FullName);
         }
 
         public FSMBase GetFSM(Type ownerType)
@@ -93,25 +93,25 @@ namespace Framework.Module.FSM
                 throw new Exception("Owner type is invalid.");
             }
 
-            return InternelGetFsm(ownerType.FullName);
+            return InternelGetFSM(ownerType.FullName);
         }
 
         public IFSM<T> GetFSM<T>(string name) where T : class
         {
-            return (IFSM<T>)InternelGetFsm(name);
+            return (IFSM<T>)InternelGetFSM(name);
         }
 
-        public FSMBase GetFsm(Type ownerType, string name)
+        public FSMBase GetFSM(Type ownerType, string name)
         {
             if (ownerType == null)
             {
                 throw new Exception("Owner type is invalid.");
             }
 
-            return InternelGetFsm(ownerType.FullName);
+            return InternelGetFSM(ownerType.FullName);
         }
 
-        public FSMBase[] GetAllFsms()
+        public FSMBase[] GetAllFSM()
         {
             int index = 0;
             FSMBase[] fsms = new FSMBase[m_Fsms.Count];
@@ -142,7 +142,7 @@ namespace Framework.Module.FSM
 
         public bool DestroyFSM<T>() where T : class
         {
-            return InternalDestroyFsm(typeof(T).FullName);
+            return InternalDestroyFSM(typeof(T).FullName);
         }
 
         public bool DestroyFSM(Type ownerType)
@@ -152,12 +152,12 @@ namespace Framework.Module.FSM
                 throw new Exception("Owner type is invalid.");
             }
 
-            return InternalDestroyFsm(ownerType.FullName);
+            return InternalDestroyFSM(ownerType.FullName);
         }
 
         public bool DestroyFSM<T>(string name) where T : class
         {
-            return InternalDestroyFsm(name);
+            return InternalDestroyFSM(name);
         }
 
         public bool DestroyFSM(Type ownerType, string name)
@@ -167,7 +167,7 @@ namespace Framework.Module.FSM
                 throw new Exception("Owner type is invalid.");
             }
 
-            return InternalDestroyFsm(ownerType.FullName);
+            return InternalDestroyFSM(ownerType.FullName);
         }
 
         public bool DestroyFSM<T>(IFSM<T> fsm) where T : class
@@ -177,7 +177,7 @@ namespace Framework.Module.FSM
                 throw new Exception("FSM is invalid.");
             }
 
-            return InternalDestroyFsm(typeof(T).FullName);
+            return InternalDestroyFSM(typeof(T).FullName);
         }
 
         public bool DestroyFSM(FSMBase fsm)
@@ -187,15 +187,15 @@ namespace Framework.Module.FSM
                 throw new Exception("FSM is invalid.");
             }
 
-            return InternalDestroyFsm(fsm.OwnerType.FullName);
+            return InternalDestroyFSM(fsm.OwnerType.FullName);
         }
 
-        private bool InternalHasFsm(string fullName)
+        private bool InternalHasFSM(string fullName)
         {
             return m_Fsms.ContainsKey(fullName);
         }
 
-        private FSMBase InternelGetFsm(string fullName)
+        private FSMBase InternelGetFSM(string fullName)
         {
             FSMBase fsm = null;
             if (m_Fsms.TryGetValue(fullName, out fsm))
@@ -206,7 +206,7 @@ namespace Framework.Module.FSM
             return null;
         }
 
-        private bool InternalDestroyFsm(string fullName)
+        private bool InternalDestroyFSM(string fullName)
         {
             FSMBase fsm = null;
             if (m_Fsms.TryGetValue(fullName, out fsm))

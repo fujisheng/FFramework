@@ -440,7 +440,7 @@ namespace Framework.Module.FSM
         /// 切换当前有限状态机状态。
         /// </summary>
         /// <typeparam name="TState">要切换到的有限状态机状态类型。</typeparam>
-        internal void ChangeState<TState>() where TState : IState<T>
+        public void ChangeState<TState>() where TState : IState<T>
         {
             ChangeState(typeof(TState));
         }
@@ -449,7 +449,7 @@ namespace Framework.Module.FSM
         /// 切换当前有限状态机状态。
         /// </summary>
         /// <param name="stateType">要切换到的有限状态机状态类型。</param>
-        internal void ChangeState(Type stateType)
+        public void ChangeState(Type stateType)
         {
             if (m_CurrentState == null)
             {
