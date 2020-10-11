@@ -22,7 +22,7 @@ namespace Framework.Module.FSM
                 return;
             }
 
-            fsmImplement.ChangeState<TState>();
+            //fsmImplement.ChangeState<TState>();
         }
 
         public void ChangeState(IFSM<T> fsm, Type stateType)
@@ -43,7 +43,12 @@ namespace Framework.Module.FSM
                 return;
             }
 
-            fsmImplement.ChangeState(stateType);
+            //fsmImplement.ChangeState(stateType);
+        }
+
+        public void OnEvent(IFSM<T> fsm, object sender, int eventId, object args)
+        {
+            throw new NotImplementedException();
         }
     }
 }
