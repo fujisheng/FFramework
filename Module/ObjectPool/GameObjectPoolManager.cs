@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using Framework.Module.Resource;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Framework.Module.ObjectPool
 {
+    [Dependency(typeof(IResourceManager))]
     internal sealed class GameObjectPoolManager : Module, IGameObjectPoolManager
     {
         Dictionary<string, GameObjectPool> pools = new Dictionary<string, GameObjectPool>();
@@ -16,11 +18,10 @@ namespace Framework.Module.ObjectPool
 
         GameObject cacheRoot;
 
-        internal override async Task OnLoad()
+        internal GameObjectPoolManager()
         {
             cacheRoot = new GameObject("[GameObjectPool]");
             Object.DontDestroyOnLoad(cacheRoot);
-            await base.OnLoad();
         }
 
         internal override void OnLateUpdate()
@@ -86,7 +87,7 @@ namespace Framework.Module.ObjectPool
             }
 
             disposeCurrent = false;
-            disposeQueue.Dequeue().Dispose();
+            disposeQueue.Dequeue().Release();
             await Task.Yield();
             disposeCurrent = true;
         }
@@ -126,7 +127,7 @@ namespace Framework.Module.ObjectPool
             return await newPool.Pop();
         }
 
-        public void Dispose()
+        public void Release()
         {
             cachePool.Dispose();
 

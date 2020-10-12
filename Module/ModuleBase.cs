@@ -1,11 +1,7 @@
-﻿using System.Threading.Tasks;
-
-namespace Framework.Module
+﻿namespace Framework.Module
 {
-    internal abstract class Module 
+    public abstract class Module
     {
-        internal virtual async Task OnLoad() { }
-        internal virtual async Task OnInit() { }
         internal virtual void OnUpdate() { }
         internal virtual void OnLateUpdate() { }
         internal virtual void OnFixedUpdate() { }

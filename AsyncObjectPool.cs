@@ -39,7 +39,7 @@ namespace Framework
             return pool.Pop();
         }
 
-        public virtual void Dispose()
+        public virtual void Release()
         {
             pool.Clear();
         }

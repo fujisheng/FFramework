@@ -14,11 +14,10 @@ namespace Framework.Module.Audio
         ConcurrentDictionary<int, AudioChannel> Channels = new ConcurrentDictionary<int, AudioChannel>();
         IResourceLoader resourceLoader;
 
-        internal override async Task OnInit()
+        internal AudioManager()
         {
             resourceLoader = ResourceLoader.Ctor();
             InitChannel(5);
-            await base.OnInit();
         }
 
         void InitChannel(int count)

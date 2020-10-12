@@ -13,10 +13,9 @@ namespace Framework.Module.Unity.Timer
 
         List<Action<long>> tickerList = new List<Action<long>>();
 
-        internal override async Task OnInit()
+        internal TimerManager()
         {
             currentTime = GetTimeStamp(false);
-            await base.OnInit();
         }
 
         long GetTimeStamp(bool bflag)

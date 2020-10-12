@@ -1,7 +1,8 @@
 {
     "name": "Framework.Editor",
     "references": [
-        "GUID:eccfeb5d31fe9e143aa6bf752d62e365"
+        "GUID:eccfeb5d31fe9e143aa6bf752d62e365",
+        "GUID:69448af7b92c7f342b298e06a37122aa"
     ],
     "includePlatforms": [
         "Editor"

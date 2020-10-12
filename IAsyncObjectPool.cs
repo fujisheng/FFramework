@@ -10,5 +10,6 @@ namespace Framework
         void SetSize(int size);
         void Push(T obj);
         Task<T> Pop();
+        void Release();
     }
 }

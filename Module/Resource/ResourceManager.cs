@@ -6,7 +6,7 @@ using Object = UnityEngine.Object;
 
 namespace Framework.Module.Resource
 {
-    internal sealed class AddressablesResourceManager : Module, IResourceManager
+    internal sealed class ResourceManager : Module, IResourceManager
     {
         public async Task<T> LoadAsync<T>(string assetName) where T : Object
         {

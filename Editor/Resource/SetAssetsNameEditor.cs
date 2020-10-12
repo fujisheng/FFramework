@@ -2,26 +2,19 @@
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using UnityEditor.AddressableAssets.Settings;
+using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 
 namespace Framework.Module.Resource.Editor
 {
     public class SetAssetsNameEditor : AssetPostprocessor
     {
-        static readonly string dirPath = "Assets/Resources";
-        static readonly string outputPath = "Assets/Resources/GameSetting";
+        static Dictionary<string, string> mapping = new Dictionary<string, string>();
+        static readonly string dirPath = "Assets/Sources";
         static readonly List<string> ignoreExtensions = new List<string>
         {
             ".meta",
             ".DS_Store",
-        };
-        static readonly List<string> ignoreDir = new List<string>
-        {
-
-        };
-
-        static readonly Dictionary<string, string> replaceStr = new Dictionary<string, string>
-        {
-
         };
 
         static void OnPostprocessAllAssets(string[] impertedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
@@ -47,55 +40,75 @@ namespace Framework.Module.Resource.Editor
                 SetAddress();
             }
         }
-
-        [MenuItem("Tools/AssetBundles/设置资源名字路径对应表")]
+        //TODO 后续改成更改一个只变一个  同时如果删除了资源对应的也移除
+        [MenuItem("Tools/Addressable/SetAddress")]
         public static void SetAddress()
         {
-            //AssetsNameMapping assetsNameMapping = ScriptableObject.CreateInstance<AssetsNameMapping>();
-            //GetPath(dirPath, assetsNameMapping);
-            //Debug.Log("设置资源名字路径对应表成功！！！");
+            mapping.Clear();
+            GetPath(dirPath);
+            foreach(var kv in mapping)
+            {
+                CreateAddressableAssetEntry(kv.Value, kv.Key);
+            }
+            Debug.Log("设置资源名字路径对应表成功！！！");
             //AssetDatabase.CreateAsset(assetsNameMapping, $"{outputPath}/AssetsNameMapping.asset");
-            //AssetDatabase.Refresh();
+            AssetDatabase.Refresh();
         }
 
-        //static void GetPath(string dirPath, AssetsNameMapping mapping)
-        //{
-        //    foreach (string file in Directory.GetFiles(dirPath))
-        //    {
-        //        FileInfo fileInfo = new FileInfo(file);
-        //        if (ignoreExtensions.Contains(fileInfo.Extension))
-        //        {
-        //            continue;
-        //        }
+        static void CreateAddressableAssetEntry(string path, string address, string groupName = "Default Local Group")
+        {
+#if UNITY_EDITOR
+            AddressableAssetSettings settings;
+            settings = AssetDatabase.LoadAssetAtPath<AddressableAssetSettings>("Assets/AddressableAssetsData/AddressableAssetSettings.asset");
+            AddressableAssetGroup group = settings.FindGroup(groupName);
+            if (group == null)
+            {
+                group = settings.CreateGroup(groupName, false, false, false, null, typeof(BundledAssetGroupSchema));
+            }
+            string assetGUID = AssetDatabase.AssetPathToGUID(path);
+            AddressableAssetEntry entry = settings.CreateOrMoveEntry(assetGUID, group);
+            entry.address = address;
+#endif
+        }
 
-        //        string filePath = file;
-        //        string fileName = Path.GetFileNameWithoutExtension(file);
-        //        foreach (var kv in replaceStr)
-        //        {
-        //            fileName = fileName.Replace(kv.Key, kv.Value);
-        //        }
+        static void GetPath(string dirPath)
+        {
+            foreach (string file in Directory.GetFiles(dirPath))
+            {
+                FileInfo fileInfo = new FileInfo(file);
+                if (ignoreExtensions.Contains(fileInfo.Extension))
+                {
+                    continue;
+                }
 
-        //        if (mapping.mapping.ContainsKey(fileName))
-        //        {
-        //            Debug.LogError($"已经包含这个名字的资源！！！请保证资源名字唯一  {fileName}");
-        //            return;
-        //        }
-                
-        //        mapping.mapping.Add(fileName, filePath.Replace('\\', '/'));
-        //    }
+                string filePath = file;
+                string fileName = Path.GetFileNameWithoutExtension(file);
+                //foreach (var kv in replaceStr)
+                //{
+                //    fileName = fileName.Replace(kv.Key, kv.Value);
+                //}
 
-        //    if (Directory.GetDirectories(dirPath).Length > 0)
-        //    {
-        //        foreach (string dir in Directory.GetDirectories(dirPath))
-        //        {
-        //            DirectoryInfo directoryInfo = new DirectoryInfo(dir);
-        //            if (ignoreDir.Contains(directoryInfo.Name))
-        //            {
-        //                continue;
-        //            }
-        //            GetPath(dir, mapping);
-        //        }
-        //    }
-        //}
+                if (mapping.ContainsKey(fileName))
+                {
+                    Debug.LogError($"已经包含这个名字的资源！！！请保证资源名字唯一  {fileName}");
+                    return;
+                }
+
+                mapping.Add(fileName, filePath.Replace('\\', '/'));
+            }
+
+            if (Directory.GetDirectories(dirPath).Length > 0)
+            {
+                foreach (string dir in Directory.GetDirectories(dirPath))
+                {
+                    DirectoryInfo directoryInfo = new DirectoryInfo(dir);
+                    //if (ignoreDir.Contains(directoryInfo.Name))
+                    //{
+                    //    continue;
+                    //}
+                    GetPath(dir);
+                }
+            }
+        }
     }
 }

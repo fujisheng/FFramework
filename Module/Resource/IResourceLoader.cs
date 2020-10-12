@@ -10,6 +10,10 @@ namespace Framework.Module.Resource
         GameObject Instantiate(string assetName);
         Task<GameObject> InstantiateAsync(string assetName);
         void DestroyGameObject(GameObject gameObject);
+
+        /// <summary>
+        /// 释放这个Loader 请在释放后将其置空
+        /// </summary>
         void Release();
     }
 }

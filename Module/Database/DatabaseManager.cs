@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Framework.Module.Database
@@ -8,13 +7,12 @@ namespace Framework.Module.Database
     {
         Dictionary<string, IDatabase> databaseMap = new Dictionary<string, IDatabase>();
 
-        internal override async Task OnLoad()
+        internal DatabaseManager()
         {
             IDatabase userData = new SqliteDatabase("userData", Application.persistentDataPath);
             IDatabase levelsData = new SqliteDatabase("levelsData");
             AddDatabase(userData);
             AddDatabase(levelsData);
-            await base.OnLoad();
         }
 
         public void AddDatabase(IDatabase database)

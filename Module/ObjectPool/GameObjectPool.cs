@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Framework.Module.ObjectPool
 {
-    public class GameObjectPool : AsyncObjectPool<GameObject>, IGameObjectPool
+    internal class GameObjectPool : AsyncObjectPool<GameObject>, IGameObjectPool
     {
         string gameObjectName;
         IResourceLoader resourceLoader;
@@ -36,7 +36,6 @@ namespace Framework.Module.ObjectPool
             this.resourceLoader = resourceLoader;
         }
 
-
         protected override async Task<GameObject> New()
         {
             if (string.IsNullOrEmpty(gameObjectName))
@@ -52,7 +51,7 @@ namespace Framework.Module.ObjectPool
             return gameObject;
         }
 
-        public override void Dispose()
+        public override void Release()
         {
             while (true)
             {

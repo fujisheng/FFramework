@@ -9,7 +9,7 @@ namespace Framework.Module.ObjectPool
     {
         void Push(string gameObjectName, GameObject gameObject);
         Task<GameObject> Pop(string gameObjectName);
-        void Dispose();
+        void Release();
         void SetCheckTime(float time);
         void SetSleepTime(float time);
     }

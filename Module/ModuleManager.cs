@@ -37,23 +37,24 @@ namespace Framework.Module
         }
 
         /// <summary>
-        /// 添加一个模块 同一种类型的模块只允许添加一个 同时如果这个模块有依赖会自动添加依赖
+        /// 创建模块 如果这个模块有依赖会先创建其依赖
         /// </summary>
-        /// <param name="module"></param>
-        public void AddModule<T>()
+        /// <param name="moduleName"></param>
+        /// <returns></returns>
+        Module CreateModule(string moduleName)
         {
-            var moduleType = typeof(T);
-            AddModule(InstanceFactory.CreateInstance<Module>(moduleType.Name));
-        }
+            Type moduleType = AssemblyUtility.GetType(moduleName);
+            if(moduleType == null)
+            {
+                throw new Exception($"can't found this type {moduleName}");
+            }
 
-        void AddModule(Module module)
-        {
-            var moduleType = module.GetType();
+            var module = Activator.CreateInstance(moduleType, true);
             foreach (var mod in loadedModules)
             {
-                if (mod.GetType().Name == moduleType.Name)
+                if (mod.GetType().FullName == moduleType.FullName)
                 {
-                    return;
+                    return mod;
                 }
             }
 
@@ -66,32 +67,57 @@ namespace Framework.Module
                     {
                         continue;
                     }
-                    AddModule(InstanceFactory.CreateInstance<Module>(depend.Name));
+                    string dependName = string.Format("{0}.{1}", depend.Namespace, depend.Name.Substring(1));
+                    CreateModule(dependName);
                 }
             }
 
-            module.OnLoad();
-            Debug.Log($"<color=blue>LoadModule=>{module.GetType().Name}</color>");
-            loadedModules.Add(module);
+            Debug.Log($"<color=blue>CreateModule=>{module.GetType().FullName}</color>");
+            loadedModules.Add(module as Module);
+            return module as Module;
         }
 
         /// <summary>
-        /// 获取一个module
+        /// 获取游戏框架模块。
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <typeparam name="T">要获取的游戏框架模块类型。</typeparam>
+        /// <returns>要获取的游戏框架模块。</returns>
+        /// <remarks>如果要获取的游戏框架模块不存在，则自动创建该游戏框架模块和其依赖。</remarks>
         public T GetModule<T>() where T : class
         {
-            for (int i = 0; i < initedModules.Count; i++)
+            Type interfaceType = typeof(T);
+            if (!interfaceType.IsInterface)
             {
-                var module = initedModules[i];
-                if (initedModules[i] is T)
+                throw new Exception($"You must get module by interface, but '{interfaceType.FullName}' is not.");
+            }
+
+            if (!interfaceType.FullName.StartsWith("Framework.Module", StringComparison.Ordinal))
+            {
+                throw new Exception($"You must get a Framework module, but '{interfaceType.FullName}' is not.");
+            }
+
+            string moduleName = string.Format("{0}.{1}", interfaceType.Namespace, interfaceType.Name.Substring(1));
+            Type moduleType = Type.GetType(moduleName);
+            if (moduleType == null)
+            {
+                throw new Exception($"Can not find module type '{moduleName}'.");
+            }
+
+            return GetModule(moduleType) as T;
+        }
+
+        // 获取游戏框架模块。如果要获取的游戏框架模块不存在，则自动创建该游戏框架模块
+        Module GetModule(Type moduleType)
+        {
+            foreach (Module module in loadedModules)
+            {
+                if (module.GetType() == moduleType)
                 {
-                    return module as T;
+                    return module;
                 }
             }
 
-            return default;
+            return CreateModule(moduleType.FullName);
         }
 
 
