@@ -5,14 +5,11 @@ namespace Framework.Module.FSM
     public class State<T> : IState<T> where T : class
     {
         public virtual void OnInit(IFSM<T> fsm) { }
-
         public virtual void OnEnter(IFSM<T> fsm) { }
-
         public virtual void OnUpdate(IFSM<T> fsm) { }
-
         public virtual void OnLeave(IFSM<T> fsm, bool isShutdown) { }
-
         public virtual void OnDestroy(IFSM<T> fsm) { }
+        public virtual void OnEvent(IFSM<T> fsm, object sender, int eventId, object args) { }
 
         public void ChangeState<TState>(IFSM<T> fsm) where TState : IState<T>
         {
@@ -44,11 +41,6 @@ namespace Framework.Module.FSM
             }
 
             fsmImplement.ChangeState(stateType);
-        }
-
-        public void OnEvent(IFSM<T> fsm, object sender, int eventId, object args)
-        {
-            throw new NotImplementedException();
         }
     }
 }

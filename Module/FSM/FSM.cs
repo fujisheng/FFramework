@@ -2,18 +2,53 @@
 using System.Collections.Generic;
 
 namespace Framework.Module.FSM
-{/// <summary>
- /// 有限状态机。
- /// </summary>
- /// <typeparam name="T">有限状态机持有者类型。</typeparam>
+{
     internal sealed class FSM<T> : FSMBase, IFSM<T> where T : class
     {
-        private readonly T m_Owner;
-        private readonly Dictionary<string, IState<T>> m_States;
-        private readonly Dictionary<string, IArgs> m_Datas;
-        private IState<T> m_CurrentState;
-        private float m_CurrentStateTime;
-        private bool m_IsDestroyed;
+        readonly Dictionary<string, IState<T>> states;
+        readonly Dictionary<string, IArgs> datas;
+        float currentStateTime;
+        bool isDestroyed;
+
+        /// <summary>
+        /// 获取有限状态机持有者。
+        /// </summary>
+        public T Owner { get; }
+
+        /// <summary>
+        /// 获取当前有限状态机状态。
+        /// </summary>
+        public IState<T> CurrentState { get; private set; }
+
+        /// <summary>
+        /// 获取有限状态机持有者类型。
+        /// </summary>
+        public override Type OwnerType => typeof(T);
+
+        /// <summary>
+        /// 获取有限状态机中状态的数量。
+        /// </summary>
+        public override int StateCount => states.Count;
+
+        /// <summary>
+        /// 获取有限状态机是否正在运行。
+        /// </summary>
+        public override bool IsRunning => CurrentState != null;
+
+        /// <summary>
+        /// 获取有限状态机是否被销毁。
+        /// </summary>
+        public override bool IsDestroyed => isDestroyed;
+
+        /// <summary>
+        /// 获取当前有限状态机状态名称。
+        /// </summary>
+        public override string CurrentStateName => CurrentState?.GetType().FullName;
+
+        /// <summary>
+        /// 获取当前有限状态机状态持续时间。
+        /// </summary>
+        public override float CurrentStateTime => currentStateTime;
 
         /// <summary>
         /// 初始化有限状态机的新实例。
@@ -21,8 +56,7 @@ namespace Framework.Module.FSM
         /// <param name="name">有限状态机名称。</param>
         /// <param name="owner">有限状态机持有者。</param>
         /// <param name="states">有限状态机状态集合。</param>
-        public FSM(string name, T owner, params IState<T>[] states)
-            : base(name)
+        public FSM(string name, T owner, params IState<T>[] states) : base(name)
         {
             if (owner == null)
             {
@@ -34,9 +68,9 @@ namespace Framework.Module.FSM
                 throw new Exception("FSM states is invalid.");
             }
 
-            m_Owner = owner;
-            m_States = new Dictionary<string, IState<T>>();
-            m_Datas = new Dictionary<string, IArgs>();
+            this.Owner = owner;
+            this.states = new Dictionary<string, IState<T>>();
+            datas = new Dictionary<string, IArgs>();
 
             foreach (IState<T> state in states)
             {
@@ -46,106 +80,18 @@ namespace Framework.Module.FSM
                 }
 
                 string stateName = state.GetType().FullName;
-                if (m_States.ContainsKey(stateName))
+                if (this.states.ContainsKey(stateName))
                 {
                     throw new Exception(string.Format("FSM '{0}' state '{1}' is already exist.", name, stateName));
                 }
 
-                m_States.Add(stateName, state);
+                this.states.Add(stateName, state);
                 state.OnInit(this);
             }
 
-            m_CurrentStateTime = 0f;
-            m_CurrentState = null;
-            m_IsDestroyed = false;
-        }
-
-        /// <summary>
-        /// 获取有限状态机持有者。
-        /// </summary>
-        public T Owner
-        {
-            get
-            {
-                return m_Owner;
-            }
-        }
-
-        /// <summary>
-        /// 获取有限状态机持有者类型。
-        /// </summary>
-        public override Type OwnerType
-        {
-            get
-            {
-                return typeof(T);
-            }
-        }
-
-        /// <summary>
-        /// 获取有限状态机中状态的数量。
-        /// </summary>
-        public override int StateCount
-        {
-            get
-            {
-                return m_States.Count;
-            }
-        }
-
-        /// <summary>
-        /// 获取有限状态机是否正在运行。
-        /// </summary>
-        public override bool IsRunning
-        {
-            get
-            {
-                return m_CurrentState != null;
-            }
-        }
-
-        /// <summary>
-        /// 获取有限状态机是否被销毁。
-        /// </summary>
-        public override bool IsDestroyed
-        {
-            get
-            {
-                return m_IsDestroyed;
-            }
-        }
-
-        /// <summary>
-        /// 获取当前有限状态机状态。
-        /// </summary>
-        public IState<T> CurrentState
-        {
-            get
-            {
-                return m_CurrentState;
-            }
-        }
-
-        /// <summary>
-        /// 获取当前有限状态机状态名称。
-        /// </summary>
-        public override string CurrentStateName
-        {
-            get
-            {
-                return m_CurrentState != null ? m_CurrentState.GetType().FullName : null;
-            }
-        }
-
-        /// <summary>
-        /// 获取当前有限状态机状态持续时间。
-        /// </summary>
-        public override float CurrentStateTime
-        {
-            get
-            {
-                return m_CurrentStateTime;
-            }
+            currentStateTime = 0f;
+            CurrentState = null;
+            isDestroyed = false;
         }
 
         /// <summary>
@@ -165,9 +111,9 @@ namespace Framework.Module.FSM
                 throw new Exception(string.Format("FSM '{0}' can not start state '{1}' which is not exist.", Name, typeof(TState).FullName));
             }
 
-            m_CurrentStateTime = 0f;
-            m_CurrentState = state;
-            m_CurrentState.OnEnter(this);
+            currentStateTime = 0f;
+            CurrentState = state;
+            CurrentState.OnEnter(this);
         }
 
         /// <summary>
@@ -197,9 +143,9 @@ namespace Framework.Module.FSM
                 throw new Exception(string.Format("FSM '{0}' can not start state '{1}' which is not exist.", Name, stateType.FullName));
             }
 
-            m_CurrentStateTime = 0f;
-            m_CurrentState = state;
-            m_CurrentState.OnEnter(this);
+            currentStateTime = 0f;
+            CurrentState = state;
+            CurrentState.OnEnter(this);
         }
 
         /// <summary>
@@ -209,7 +155,7 @@ namespace Framework.Module.FSM
         /// <returns>是否存在有限状态机状态。</returns>
         public bool HasState<TState>() where TState : IState<T>
         {
-            return m_States.ContainsKey(typeof(TState).FullName);
+            return states.ContainsKey(typeof(TState).FullName);
         }
 
         /// <summary>
@@ -229,7 +175,7 @@ namespace Framework.Module.FSM
                 throw new Exception(string.Format("State type '{0}' is invalid.", stateType.FullName));
             }
 
-            return m_States.ContainsKey(stateType.FullName);
+            return states.ContainsKey(stateType.FullName);
         }
 
         /// <summary>
@@ -239,8 +185,7 @@ namespace Framework.Module.FSM
         /// <returns>要获取的有限状态机状态。</returns>
         public TState GetState<TState>() where TState : IState<T>
         {
-            IState<T> state = null;
-            if (m_States.TryGetValue(typeof(TState).FullName, out state))
+            if (states.TryGetValue(typeof(TState).FullName, out IState<T> state))
             {
                 return (TState)state;
             }
@@ -265,8 +210,7 @@ namespace Framework.Module.FSM
                 throw new Exception(string.Format("State type '{0}' is invalid.", stateType.FullName));
             }
 
-            IState<T> state = null;
-            if (m_States.TryGetValue(stateType.FullName, out state))
+            if (states.TryGetValue(stateType.FullName, out IState<T> state))
             {
                 return state;
             }
@@ -281,12 +225,12 @@ namespace Framework.Module.FSM
         /// <param name="eventId">事件编号。</param>
         public void FireEvent(object sender, int eventId)
         {
-            if (m_CurrentState == null)
+            if (CurrentState == null)
             {
                 throw new Exception("Current state is invalid.");
             }
 
-            m_CurrentState.OnEvent(this, sender, eventId, null);
+            CurrentState.OnEvent(this, sender, eventId, null);
         }
 
         /// <summary>
@@ -297,12 +241,12 @@ namespace Framework.Module.FSM
         /// <param name="userData">用户自定义数据。</param>
         public void FireEvent(object sender, int eventId, object userData)
         {
-            if (m_CurrentState == null)
+            if (CurrentState == null)
             {
                 throw new Exception("Current state is invalid.");
             }
 
-            m_CurrentState.OnEvent(this, sender, eventId, userData);
+            CurrentState.OnEvent(this, sender, eventId, userData);
         }
 
         /// <summary>
@@ -317,7 +261,7 @@ namespace Framework.Module.FSM
                 throw new Exception("Data name is invalid.");
             }
 
-            return m_Datas.ContainsKey(name);
+            return datas.ContainsKey(name);
         }
 
         /// <summary>
@@ -343,8 +287,7 @@ namespace Framework.Module.FSM
                 throw new Exception("Data name is invalid.");
             }
 
-            IArgs data = null;
-            if (m_Datas.TryGetValue(name, out data))
+            if (datas.TryGetValue(name, out IArgs data))
             {
                 return data;
             }
@@ -365,7 +308,7 @@ namespace Framework.Module.FSM
                 throw new Exception("Data name is invalid.");
             }
 
-            m_Datas[name] = data;
+            datas[name] = data;
         }
 
         /// <summary>
@@ -380,7 +323,7 @@ namespace Framework.Module.FSM
                 throw new Exception("Data name is invalid.");
             }
 
-            m_Datas[name] = data;
+            datas[name] = data;
         }
 
         /// <summary>
@@ -395,22 +338,20 @@ namespace Framework.Module.FSM
                 throw new Exception("Data name is invalid.");
             }
 
-            return m_Datas.Remove(name);
+            return datas.Remove(name);
         }
 
         /// <summary>
         /// 有限状态机轮询。
         /// </summary>
-        /// <param name="elapseSeconds">逻辑流逝时间，以秒为单位。</param>
-        /// <param name="realElapseSeconds">真实流逝时间，以秒为单位。</param>
         internal override void Update()
         {
-            if (m_CurrentState == null)
+            if (CurrentState == null)
             {
                 return;
             }
 
-            m_CurrentState.OnUpdate(this);
+            CurrentState.OnUpdate(this);
         }
 
         /// <summary>
@@ -418,22 +359,22 @@ namespace Framework.Module.FSM
         /// </summary>
         internal override void Shutdown()
         {
-            if (m_CurrentState != null)
+            if (CurrentState != null)
             {
-                m_CurrentState.OnLeave(this, true);
-                m_CurrentState = null;
-                m_CurrentStateTime = 0f;
+                CurrentState.OnLeave(this, true);
+                CurrentState = null;
+                currentStateTime = 0f;
             }
 
-            foreach (KeyValuePair<string, IState<T>> state in m_States)
+            foreach (KeyValuePair<string, IState<T>> state in states)
             {
                 state.Value.OnDestroy(this);
             }
 
-            m_States.Clear();
-            m_Datas.Clear();
+            states.Clear();
+            datas.Clear();
 
-            m_IsDestroyed = true;
+            isDestroyed = true;
         }
 
         /// <summary>
@@ -451,7 +392,7 @@ namespace Framework.Module.FSM
         /// <param name="stateType">要切换到的有限状态机状态类型。</param>
         public void ChangeState(Type stateType)
         {
-            if (m_CurrentState == null)
+            if (CurrentState == null)
             {
                 throw new Exception("Current state is invalid.");
             }
@@ -462,10 +403,10 @@ namespace Framework.Module.FSM
                 throw new Exception(string.Format("FSM '{0}' can not change state to '{1}' which is not exist.", Name, stateType.FullName));
             }
 
-            m_CurrentState.OnLeave(this, false);
-            m_CurrentStateTime = 0f;
-            m_CurrentState = state;
-            m_CurrentState.OnEnter(this);
+            CurrentState.OnLeave(this, false);
+            currentStateTime = 0f;
+            CurrentState = state;
+            CurrentState.OnEnter(this);
         }
     }
 }

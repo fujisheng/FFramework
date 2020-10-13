@@ -9,7 +9,6 @@ namespace Framework.Module
     public class ModuleManager
     {
         readonly List<Module> loadedModules = new List<Module>();
-        readonly List<Module> initedModules = new List<Module>();
 
         static ModuleManager instance;
         public static ModuleManager Instance { get { return instance ?? (instance = new ModuleManager()); } }
@@ -124,57 +123,57 @@ namespace Framework.Module
 
         internal void Update()
         {
-            for(int i = 0; i < initedModules.Count; i++)
+            for(int i = 0; i < loadedModules.Count; i++)
             {
-                initedModules[i].OnUpdate();
+                loadedModules[i].OnUpdate();
             }
         }
 
         internal void LateUpdate()
         {
-            for(int i = 0; i < initedModules.Count; i++)
+            for(int i = 0; i < loadedModules.Count; i++)
             {
-                initedModules[i].OnLateUpdate();
+                loadedModules[i].OnLateUpdate();
             }
         }
 
         internal void FixedUpdate()
         {
-            for (int i = 0; i < initedModules.Count; i++)
+            for (int i = 0; i < loadedModules.Count; i++)
             {
-                initedModules[i].OnFixedUpdate();
+                loadedModules[i].OnFixedUpdate();
             }
         }
 
         internal void TearDown()
         {
-            for (int i = initedModules.Count - 1; i >= 0; i--)
+            for (int i = loadedModules.Count - 1; i >= 0; i--)
             {
-                initedModules[i].OnTearDown();
+                loadedModules[i].OnTearDown();
             }
         }
 
         internal void ApplicationFocus(bool focus)
         {
-            for (int i = 0; i < initedModules.Count; i++)
+            for (int i = 0; i < loadedModules.Count; i++)
             {
-                initedModules[i].OnApplicationFocus(focus);
+                loadedModules[i].OnApplicationFocus(focus);
             }
         }
 
         internal void ApplicationPause(bool pause)
         {
-            for (int i = 0; i < initedModules.Count; i++)
+            for (int i = 0; i < loadedModules.Count; i++)
             {
-                initedModules[i].OnApplicationPause(pause);
+                loadedModules[i].OnApplicationPause(pause);
             }
         }
 
         internal void ApplicationQuit()
         {
-            for (int i = 0; i < initedModules.Count; i++)
+            for (int i = 0; i < loadedModules.Count; i++)
             {
-                initedModules[i].OnApplicationQuit();
+                loadedModules[i].OnApplicationQuit();
             }
         }
     }

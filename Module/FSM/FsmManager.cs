@@ -3,33 +3,33 @@ using System.Collections.Generic;
 
 namespace Framework.Module.FSM
 {
-    internal sealed class FSMManager : Module 
+    internal sealed class FSMManager : Module , IFSMManager
     {
-        private readonly Dictionary<string, FSMBase> m_Fsms;
-        private readonly List<FSMBase> m_TempFsms;
+        readonly Dictionary<string, FSMBase> FSMS;
+        readonly List<FSMBase> tempFSMS;
 
         public FSMManager()
         {
-            m_Fsms = new Dictionary<string, FSMBase>();
-            m_TempFsms = new List<FSMBase>();
+            FSMS = new Dictionary<string, FSMBase>();
+            tempFSMS = new List<FSMBase>();
         }
 
-        public int Count { get { return m_Fsms.Count; } }
+        public int Count => FSMS.Count;
 
         internal override void OnUpdate()
         {
-            m_TempFsms.Clear();
-            if (m_Fsms.Count <= 0)
+            tempFSMS.Clear();
+            if (FSMS.Count <= 0)
             {
                 return;
             }
 
-            foreach (KeyValuePair<string, FSMBase> fsm in m_Fsms)
+            foreach (KeyValuePair<string, FSMBase> fsm in FSMS)
             {
-                m_TempFsms.Add(fsm.Value);
+                tempFSMS.Add(fsm.Value);
             }
 
-            foreach (FSMBase fsm in m_TempFsms)
+            foreach (FSMBase fsm in tempFSMS)
             {
                 if (fsm.IsDestroyed)
                 {
@@ -42,13 +42,13 @@ namespace Framework.Module.FSM
 
         internal override void OnTearDown()
         {
-            foreach (KeyValuePair<string, FSMBase> fsm in m_Fsms)
+            foreach (KeyValuePair<string, FSMBase> fsm in FSMS)
             {
                 fsm.Value.Shutdown();
             }
 
-            m_Fsms.Clear();
-            m_TempFsms.Clear();
+            FSMS.Clear();
+            tempFSMS.Clear();
         }
 
         public bool HasFSM<T>() where T : class
@@ -114,8 +114,8 @@ namespace Framework.Module.FSM
         public FSMBase[] GetAllFSM()
         {
             int index = 0;
-            FSMBase[] fsms = new FSMBase[m_Fsms.Count];
-            foreach (KeyValuePair<string, FSMBase> fsm in m_Fsms)
+            FSMBase[] fsms = new FSMBase[FSMS.Count];
+            foreach (KeyValuePair<string, FSMBase> fsm in FSMS)
             {
                 fsms[index++] = fsm.Value;
             }
@@ -136,7 +136,7 @@ namespace Framework.Module.FSM
             }
 
             FSM<T> fsm = new FSM<T>(name, owner, states);
-            m_Fsms.Add(name, fsm);
+            FSMS.Add(name, fsm);
             return fsm;
         }
 
@@ -192,13 +192,12 @@ namespace Framework.Module.FSM
 
         private bool InternalHasFSM(string fullName)
         {
-            return m_Fsms.ContainsKey(fullName);
+            return FSMS.ContainsKey(fullName);
         }
 
         private FSMBase InternelGetFSM(string fullName)
         {
-            FSMBase fsm = null;
-            if (m_Fsms.TryGetValue(fullName, out fsm))
+            if (FSMS.TryGetValue(fullName, out FSMBase fsm))
             {
                 return fsm;
             }
@@ -208,11 +207,10 @@ namespace Framework.Module.FSM
 
         private bool InternalDestroyFSM(string fullName)
         {
-            FSMBase fsm = null;
-            if (m_Fsms.TryGetValue(fullName, out fsm))
+            if (FSMS.TryGetValue(fullName, out FSMBase fsm))
             {
                 fsm.Shutdown();
-                return m_Fsms.Remove(fullName);
+                return FSMS.Remove(fullName);
             }
 
             return false;
