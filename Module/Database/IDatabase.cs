@@ -3,10 +3,15 @@
     public interface IDatabase
     {
         string Name { get; }
+        string Path { get; }
         void Connect();
+        
         void Disconnect();
-        IDataReader ExecuteQuery(IQuery query);
-        IDataReader ExecuteString(string queryStr);
+        
+        IDataReader Execute(IQuery query);
+        
+        IDataReader Execute(string queryStr);
+        
         void ClearTables();
     }
 }

@@ -13,22 +13,23 @@ namespace Framework.Module.Database
         SqliteConnection connection;
         SqliteCommand command;
         IDataReader reader;
-        public string Name { get; private set; }
         string connectionPath = string.Empty;
 
+        public string Name { get; }
+        public string Path { get; }
+        internal SqliteDatabase() { }
         public SqliteDatabase(string dbName, string path = null)
         {
             Name = dbName;
+            Path = path;
+
             if (string.IsNullOrEmpty(path))
             {
                 path = Application.streamingAssetsPath;
             }
 
-            string completePath = $"{Application.persistentDataPath}/{Name}.db";
-            string streamingPath = $"{Application.streamingAssetsPath}/{Name}.db";
-
-            //Debug.Log($"包含persistent=>{File.Exists(completePath)}    {completePath}");
-            //Debug.Log($"包含文件=>{File.Exists(streamingPath)}   {streamingPath}");
+            string completePath = $"{Application.persistentDataPath}/{dbName}.db";
+            string streamingPath = $"{Application.streamingAssetsPath}/{dbName}.db";
 
 #if UNITY_ANDROID
             if (!File.Exists(completePath) )//&& File.Exists(streamingPath))
@@ -49,7 +50,7 @@ namespace Framework.Module.Database
 #endif
 
 #if UNITY_IOS || UNITY_EDITOR
-            connectionPath = "Data Source = " + $"{path}/{Name}.db";
+            connectionPath = "Data Source = " + $"{path}/{dbName}.db";
 #elif UNITY_ANDROID
             connectionPath = "URI = file:" + completePath;
 #endif
@@ -100,7 +101,7 @@ namespace Framework.Module.Database
             Debug.Log($"Disconnection  {connectionPath}");
         }
 
-        public IDataReader ExecuteQuery(IQuery query)
+        public IDataReader Execute(IQuery query)
         {
             command = connection.CreateCommand();
             command.CommandText = query.ToString();
@@ -116,7 +117,7 @@ namespace Framework.Module.Database
             }
         }
 
-        public IDataReader ExecuteString(string queryString)
+        public IDataReader Execute(string queryString)
         {
             command = connection.CreateCommand();
             command.CommandText = queryString;
@@ -135,7 +136,7 @@ namespace Framework.Module.Database
         public void ClearTables()
         {
             string queryString = "SELECT * FROM sqlite_master WHERE type = 'table'";
-            IDataReader dataReader = ExecuteString(queryString);
+            IDataReader dataReader = Execute(queryString);
             Dictionary<int, Dictionary<string, object>> dic = DataReaderUtility.ReaderToDictionarys(dataReader);
 
             if (dic == null)
@@ -154,7 +155,7 @@ namespace Framework.Module.Database
                 {
                     if (data.Key == "name")
                     {
-                        ExecuteString($"DROP TABLE {data.Value}");
+                        Execute($"DROP TABLE {data.Value}");
                     }
                 }
             }
