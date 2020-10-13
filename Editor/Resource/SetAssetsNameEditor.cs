@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
+using System.Linq;
 
 namespace Framework.Module.Resource.Editor
 {
@@ -11,6 +12,7 @@ namespace Framework.Module.Resource.Editor
     {
         static Dictionary<string, string> mapping = new Dictionary<string, string>();
         static readonly string dirPath = "Assets/Sources";
+        static readonly string DefaultGroupName = "Default Local Group";
         static readonly List<string> ignoreExtensions = new List<string>
         {
             ".meta",
@@ -48,9 +50,18 @@ namespace Framework.Module.Resource.Editor
             GetPath(dirPath);
             foreach(var kv in mapping)
             {
-                CreateAddressableAssetEntry(kv.Value, kv.Key);
+                string subPath = kv.Value.Substring(dirPath.Length);
+                string[] names = subPath.Split('/');
+                string groupName = "";
+                for(int i = 0; i < names.Length - 1; i++)
+                {
+                    if (!string.IsNullOrEmpty(names[i]))
+                    {
+                        groupName += (names[i] + (i == names.Length - 2 ? "" : "_"));
+                    }
+                }
+                CreateAddressableAssetEntry(kv.Value, kv.Key, string.IsNullOrEmpty(groupName) ? DefaultGroupName : groupName);
             }
-            Debug.Log("设置资源名字路径对应表成功！！！");
             //AssetDatabase.CreateAsset(assetsNameMapping, $"{outputPath}/AssetsNameMapping.asset");
             AssetDatabase.Refresh();
         }
