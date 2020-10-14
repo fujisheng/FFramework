@@ -1,6 +1,6 @@
 ﻿namespace Framework.Module
 {
-    public abstract class Module
+    internal abstract class Module
     {
         internal virtual void OnUpdate() { }
         internal virtual void OnLateUpdate() { }

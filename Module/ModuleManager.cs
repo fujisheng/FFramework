@@ -11,7 +11,23 @@ namespace Framework.Module
         readonly List<Module> loadedModules = new List<Module>();
 
         static ModuleManager instance;
-        public static ModuleManager Instance { get { return instance ?? (instance = new ModuleManager()); } }
+        static GameObject moduleEntry;
+
+        ModuleManager() { }
+
+        public static ModuleManager Instance
+        {
+            get
+            {
+                if(instance == null)
+                {
+                    moduleEntry = new GameObject("[ModuleEntry]");
+                    moduleEntry.AddComponent<ModuleEntry>();
+                    instance = new ModuleManager();
+                }
+                return instance;
+            }
+        }
 
         Type[] GetModuleDependency(Type moduleType)
         {

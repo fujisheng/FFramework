@@ -54,7 +54,7 @@ namespace Framework.Awaiting
 			lateUpdates = new ContinuationProcessorGroup();
 			fixedUpdates = new ContinuationProcessorGroup();
 
-			Instance = new GameObject("Async Manager").AddComponent<AsyncManager>();
+			Instance = new GameObject("[Async Manager]").AddComponent<AsyncManager>();
 			DontDestroyOnLoad(Instance);
 		}
 

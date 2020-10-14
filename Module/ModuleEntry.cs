@@ -1,13 +1,12 @@
-﻿using Framework.Module;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace Framework
+namespace Framework.Module
 {
-    public class GameLauncher : MonoBehaviour
+    [AddComponentMenu("")]
+    internal class ModuleEntry: MonoBehaviour
     {
         private void Awake()
         {
-            Application.targetFrameRate = 144;
             DontDestroyOnLoad(gameObject);
         }
 
