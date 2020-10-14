@@ -13,12 +13,6 @@ namespace Framework.Module.Resource
             return await Addressables.LoadAssetAsync<T>(assetName);
         }
 
-        [Obsolete]
-        public T LoadSync<T>(string assetName) where T : Object
-        {
-            return null;
-        }
-
         public async Task<GameObject> InstantiateAsync(string assetName)
         {
             return await Addressables.InstantiateAsync(assetName);
