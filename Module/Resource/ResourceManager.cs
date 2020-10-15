@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using Object = UnityEngine.Object;
@@ -10,12 +11,17 @@ namespace Framework.Module.Resource
     {
         public async Task<T> LoadAsync<T>(string assetName) where T : Object
         {
-            return await Addressables.LoadAssetAsync<T>(assetName);
+            return await Addressables.LoadAssetAsync<T>(assetName).Task;
         }
+
+        public async Task<IList<T>> LoadAllAsync<T>(string label) where T : Object
+        {
+            return await Addressables.LoadAssetsAsync<T>(label, null).Task;
+        } 
 
         public async Task<GameObject> InstantiateAsync(string assetName)
         {
-            return await Addressables.InstantiateAsync(assetName);
+            return await Addressables.InstantiateAsync(assetName).Task;
         }
 
         public async void InstantiateGameObjectWithCallback(string assetName, Action<GameObject> onInstantiated)

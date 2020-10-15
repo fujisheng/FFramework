@@ -87,7 +87,7 @@ namespace Framework.Module
                 }
             }
 
-            Debug.Log($"<color=blue>CreateModule=>{module.GetType().FullName}</color>");
+            Debug.Log($"<color=blue>create module=>{module.GetType().FullName}</color>");
             loadedModules.Add(module as Module);
             return module as Module;
         }

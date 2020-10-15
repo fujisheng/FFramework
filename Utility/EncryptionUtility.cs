@@ -2,6 +2,7 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using UnityEngine;
 
 namespace Framework.Utility
 {
@@ -34,6 +35,11 @@ namespace Framework.Utility
                 cryptoStream.Write(plainBytes, 0, plainBytes.Length);
                 cryptoStream.FlushFinalBlock();
                 return Convert.ToBase64String(mStream.ToArray());
+            }
+            catch(Exception e)
+            {
+                Debug.Log(e.ToString());
+                return null;
             }
             finally
             {
@@ -82,6 +88,11 @@ namespace Framework.Utility
                 byte[] ret = new byte[len];
                 Array.Copy(tmp, 0, ret, 0, len);
                 return ret;
+            }
+            catch(Exception e)
+            {
+                Debug.Log(e.ToString());
+                return null;
             }
             finally
             {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using UnityEngine;
+using System.Collections.Generic;
 using Object = UnityEngine.Object;
 
 namespace Framework.Module.Resource
@@ -52,11 +53,18 @@ namespace Framework.Module.Resource
             return await resourceManager.LoadAsync<T>(assetName);
         }
 
+        public async Task<IList<T>> GetAllAsync<T>(string label) where T : Object
+        {
+            CheckIsReleased();
+            return await resourceManager.LoadAllAsync<T>(label);
+        }
+
         public T Get<T>(string assetName) where T : Object
         {
             CheckIsReleased();
-            var task = resourceManager.LoadAsync<T>(assetName);
-            return task.Result;
+            return null;
+            // var task = resourceManager.LoadAsync<T>(assetName);
+            // return task.Result;
             //if(task == null)
             //{
             //    return null;

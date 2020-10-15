@@ -60,13 +60,14 @@ namespace Framework.Module.Resource.Editor
                         groupName += (names[i] + (i == names.Length - 2 ? "" : "_"));
                     }
                 }
-                CreateAddressableAssetEntry(kv.Value, kv.Key, string.IsNullOrEmpty(groupName) ? DefaultGroupName : groupName);
+                string label = names[names.Length - 2];
+                CreateAddressableAssetEntry(kv.Value, kv.Key, label, string.IsNullOrEmpty(groupName) ? DefaultGroupName : groupName);
             }
             //AssetDatabase.CreateAsset(assetsNameMapping, $"{outputPath}/AssetsNameMapping.asset");
             AssetDatabase.Refresh();
         }
 
-        static void CreateAddressableAssetEntry(string path, string address, string groupName = "Default Local Group")
+        static void CreateAddressableAssetEntry(string path, string address, string label, string groupName = "Default Local Group")
         {
 #if UNITY_EDITOR
             AddressableAssetSettings settings;
@@ -78,7 +79,13 @@ namespace Framework.Module.Resource.Editor
             }
             string assetGUID = AssetDatabase.AssetPathToGUID(path);
             AddressableAssetEntry entry = settings.CreateOrMoveEntry(assetGUID, group);
-            entry.address = address;
+            entry.SetAddress(address);
+            var labels = settings.GetLabels();
+            if(!labels.Contains(label))
+            {
+                settings.AddLabel(label);
+            }
+            entry.SetLabel(label, true);
 #endif
         }
 
