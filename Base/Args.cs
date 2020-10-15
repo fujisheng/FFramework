@@ -22,25 +22,27 @@ namespace Framework
         bool IsDestroy { get; }
     }
 
+    class ArgsPool : ObjectPool<Args>
+    {
+        static ArgsPool instance;
+
+        protected override Args New()
+        {
+            return new Args();
+        }
+
+        public static ArgsPool Instance
+        {
+            get { return instance ?? (instance = new ArgsPool()); }
+        }
+    }
     public class Args : IArgs
     {
-        class ArgsPool : ObjectPool<Args>
-        {
-            protected override Args New()
-            {
-                return new Args();
-            }
-        }
-        static ArgsPool pool;
-
         public static Args Ctor()
         {
-            pool = pool ?? (pool = new ArgsPool());
-            return pool.Pop();
+            return ArgsPool.Instance.Pop();
         }
-
-        //只能通过对象池来创建
-        Args() { }
+        internal Args() { }
 
         Dictionary<string, object> objectArgs = new Dictionary<string, object>();
         Dictionary<string, int> intArgs = new Dictionary<string, int>();
@@ -208,7 +210,7 @@ namespace Framework
             stringArgs.Clear();
 
             IsDestroy = true;
-            pool.Push(this);
+            ArgsPool.Instance.Push(this);
         }
     }
 }

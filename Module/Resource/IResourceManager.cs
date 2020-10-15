@@ -8,6 +8,8 @@ namespace Framework.Module.Resource
     {
         Task<T> LoadAsync<T>(string assetName) where T : Object;
         Task<IList<T>> LoadAllAsync<T>(string lable) where T : Object;
+        Task<IList<T>> LoadAllAsync<T>(IList<string> labelOrNames) where T : Object;
         Task<GameObject> InstantiateAsync(string assetName);
+        void ReleaseInstance(GameObject gameObject);
     }
 }

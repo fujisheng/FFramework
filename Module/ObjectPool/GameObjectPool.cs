@@ -59,7 +59,7 @@ namespace Framework.Module.ObjectPool
                 {
                     break;
                 }
-                resourceLoader.DestroyGameObject(pool.Pop());
+                resourceLoader.ReleaseInstance(pool.Pop());
             }
             resourceLoader.Release();
         }

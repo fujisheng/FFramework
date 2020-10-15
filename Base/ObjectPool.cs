@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Framework
 {
-    public abstract class ObjectPool<TObject> : IObjectPool<TObject> where TObject:class
+    public abstract class ObjectPool<TObject> : IObjectPool<TObject> where TObject : class
     {
         protected Stack<TObject> pool = new Stack<TObject>();
         int size = int.MaxValue;

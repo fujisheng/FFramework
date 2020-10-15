@@ -23,22 +23,24 @@ namespace Framework.Module.Resource
     public class ResourceLoader : IResourceLoader, IDisposable
     {
 
+        bool released = false;
+        IResourceManager resourceManager;
+        Dictionary<string, Object> cache = new Dictionary<string, Object> ();
+
         public static ResourceLoader Ctor()
         {
             var loader = ResourceLoaderPool.Instance.Pop();
             loader.released = false;
             return loader;
         }
+        
 
-
-        IResourceManager resourceManager;
-
-        public ResourceLoader()
+        internal ResourceLoader()
         {
             resourceManager = ModuleManager.Instance.GetModule<IResourceManager>();
         }
 
-        bool released = false;
+        
         void CheckIsReleased()
         {
             if (released)
@@ -59,39 +61,67 @@ namespace Framework.Module.Resource
             return await resourceManager.LoadAllAsync<T>(label);
         }
 
+        public async Task<IList<T>> GetAllAsync<T>(IList<string> labelOrNames) where T : Object
+        {
+            CheckIsReleased();
+            return await resourceManager.LoadAllAsync<T>(labelOrNames);
+        }
+
+        public async Task Perload<T>(string assetName) where T : Object
+        {
+            CheckIsReleased();
+            if(cache.ContainsKey(assetName))
+            {
+                return;
+            }
+
+            var asset = await GetAsync<T>(assetName);
+            cache.Add(assetName, asset);
+        }
+
+        public async Task PerloadAll<T>(string label) where T : Object
+        {
+            CheckIsReleased();
+            var assets = await GetAllAsync<T>(label);
+            foreach(var asset in assets)
+            {
+                var assetName = asset.name;
+                if(cache.ContainsKey(assetName))
+                {
+                    continue;
+                }
+                cache.Add(assetName, asset);
+            }
+        }
+
+        public async Task PerloadAll<T>(IList<string> labelOrNames) where T : Object
+        {
+            CheckIsReleased();
+            var assets = await GetAllAsync<T>(labelOrNames);
+            foreach(var asset in assets)
+            {
+                var assetName = asset.name;
+                if(cache.ContainsKey(assetName))
+                {
+                    continue;
+                }
+                cache.Add(assetName, asset);
+            }
+        }
+
         public T Get<T>(string assetName) where T : Object
         {
             CheckIsReleased();
-            return null;
-            // var task = resourceManager.LoadAsync<T>(assetName);
-            // return task.Result;
-            //if(task == null)
-            //{
-            //    return null;
-            //}
-
-            //while (true)
-            //{
-            //    if (task.Result != null)
-            //    {
-            //        break;
-            //    }
-            //}
-            //return task.Result;
-        }
-
-        public GameObject Instantiate(string assetName)
-        {
-            CheckIsReleased();
-            var task = resourceManager.InstantiateAsync(assetName);
-            while (true)
+            if(cache.TryGetValue(assetName, out Object asset))
             {
-                if (task.IsCompleted)
+                if(asset is GameObject)
                 {
-                    break;
+                    throw new Exception("It is not allowed to get GameObject through this method. If you want to create GameObject, please use InstantiateAsync");
                 }
+                return asset as T;
             }
-            return task.Result;
+            Debug.LogWarning($"Try to get a resource without preloading synchronously : {assetName}");
+            return null;
         }
 
         public async Task<GameObject> InstantiateAsync(string assetName)
@@ -100,10 +130,10 @@ namespace Framework.Module.Resource
             return await resourceManager.InstantiateAsync(assetName);
         }
 
-        public void DestroyGameObject(GameObject gameObject)
+        public void ReleaseInstance(GameObject gameObject)
         {
             CheckIsReleased();
-            Object.DestroyImmediate(gameObject);
+            resourceManager.ReleaseInstance(gameObject);
         }
 
         /// <summary>
@@ -111,7 +141,9 @@ namespace Framework.Module.Resource
         /// </summary>
         public void Release()
         {
+            //TODO 异步加载的东西 是否要释放？？？
             CheckIsReleased();
+            cache.Clear();
             released = true;
             ResourceLoaderPool.Instance.Push(this);
         }
