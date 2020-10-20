@@ -38,6 +38,10 @@ namespace Framework.Module.Resource
         internal ResourceLoader()
         {
             resourceManager = ModuleManager.Instance.GetModule<IResourceManager>();
+            if(resourceManager == null)
+            {
+                throw new Exception("Please add module [ResourceManager] before using ResourceLoader");
+            }
         }
 
         
@@ -61,10 +65,16 @@ namespace Framework.Module.Resource
             return await resourceManager.LoadAllAsync<T>(label);
         }
 
-        public async Task<IList<T>> GetAllAsync<T>(IList<string> labelOrNames) where T : Object
+        public async Task<IList<T>> GetAllAsync<T>(IList<string> names) where T : Object
         {
             CheckIsReleased();
-            return await resourceManager.LoadAllAsync<T>(labelOrNames);
+            return await resourceManager.LoadAllAsync<T>(names);
+        }
+
+        public async Task<IList<T>> GetAllAsyncWithLabelAndNames<T>(IList<string> labelAndNames) where T : Object
+        {
+            CheckIsReleased();
+            return await resourceManager.LoadAllAsyncWithLabelAndNames<T>(labelAndNames);
         }
 
         public async Task Perload<T>(string assetName) where T : Object
@@ -94,10 +104,10 @@ namespace Framework.Module.Resource
             }
         }
 
-        public async Task PerloadAll<T>(IList<string> labelOrNames) where T : Object
+        public async Task PerloadAll<T>(IList<string> names) where T : Object
         {
             CheckIsReleased();
-            var assets = await GetAllAsync<T>(labelOrNames);
+            var assets = await GetAllAsync<T>(names);
             foreach(var asset in assets)
             {
                 var assetName = asset.name;
@@ -109,10 +119,26 @@ namespace Framework.Module.Resource
             }
         }
 
+        public async Task PerloadAllWithLabelAndNames<T>(IList<string> labelAndNames) where T : Object
+        {
+            CheckIsReleased();
+            var assets = await GetAllAsyncWithLabelAndNames<T>(labelAndNames);
+            foreach (var asset in assets)
+            {
+                var assetName = asset.name;
+                if (cache.ContainsKey(assetName))
+                {
+                    continue;
+                }
+                cache.Add(assetName, asset);
+            }
+        }
+
         public T Get<T>(string assetName) where T : Object
         {
             CheckIsReleased();
-            if(cache.TryGetValue(assetName, out Object asset))
+
+            if (cache.TryGetValue(assetName, out Object asset))
             {
                 if(asset is GameObject)
                 {
@@ -124,7 +150,7 @@ namespace Framework.Module.Resource
             return null;
         }
 
-        public async Task<GameObject> InstantiateAsync(string assetName)
+        public async Task<GameObject> InstantiateAsync(string assetName, Vector3 position = default, Quaternion rotation = default, Transform parent = null, bool trackHandle = true)
         {
             CheckIsReleased();
             return await resourceManager.InstantiateAsync(assetName);

@@ -17,22 +17,41 @@ namespace Framework.Module.Resource
         public async Task<IList<T>> LoadAllAsync<T>(string label) where T : Object
         {
             return await Addressables.LoadAssetsAsync<T>(label, null).Task;
-        } 
+        }
 
-        public async Task<IList<T>> LoadAllAsync<T>(IList<string> labelOrNames) where T : Object
+
+        public async Task<IList<T>> LoadAllAsync<T>(IList<string> names) where T : Object
         {
-            //TODO 优化这个过程
-            List<object> keys = new List<object> ();
-            foreach(var key in labelOrNames)
+            List<Task<T>> tasks = new List<Task<T>>(names.Count);
+            IList<T> result = new List<T>(names.Count);
+            foreach (var name in names)
+            {
+                var task = LoadAsync<T>(name);
+                tasks.Add(task);
+            }
+            await Task.WhenAll(tasks);
+            foreach (var task in tasks)
+            {
+                result.Add(task.Result);
+            }
+            tasks.Clear();
+            return result;
+        }
+
+        List<object> keys = new List<object>();
+        public async Task<IList<T>> LoadAllAsyncWithLabelAndNames<T>(IList<string> labelOrNames) where T : Object
+        {
+            keys.Clear();
+            foreach (var key in labelOrNames)
             {
                 keys.Add(key);
             }
             return await Addressables.LoadAssetsAsync<T>(keys, null, Addressables.MergeMode.Intersection).Task;
         }
 
-        public async Task<GameObject> InstantiateAsync(string assetName)
+        public async Task<GameObject> InstantiateAsync(string assetName, Vector3 position = default, Quaternion rotation = default, Transform parent = null, bool trackHandle = true)
         {
-            return await Addressables.InstantiateAsync(assetName).Task;
+            return await Addressables.InstantiateAsync(assetName, position, rotation, parent, trackHandle).Task;
         }
 
         public void ReleaseInstance(GameObject gameObject)

@@ -13,7 +13,7 @@ namespace Framework.Module.Resource
         Task PerloadAll<T>(string label) where T : Object;
         Task PerloadAll<T>(IList<string> labelOrNames) where T : Object;
         T Get<T>(string assetName) where T : Object;
-        Task<GameObject> InstantiateAsync(string assetName);
+        Task<GameObject> InstantiateAsync(string assetName, Vector3 position = default, Quaternion rotation = default, Transform parent = null, bool trackHandle = true);
         void ReleaseInstance(GameObject gameObject);
 
         /// <summary>
