@@ -153,7 +153,7 @@ namespace Framework.Module.Resource
         public async Task<GameObject> InstantiateAsync(string assetName, Vector3 position = default, Quaternion rotation = default, Transform parent = null, bool trackHandle = true)
         {
             CheckIsReleased();
-            return await resourceManager.InstantiateAsync(assetName);
+            return await resourceManager.InstantiateAsync(assetName, position, rotation, parent, trackHandle);
         }
 
         public void ReleaseInstance(GameObject gameObject)
