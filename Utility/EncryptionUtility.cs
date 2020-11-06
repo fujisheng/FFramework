@@ -13,17 +13,16 @@ namespace Framework.Utility
         /// <summary>
         /// AES加密(无向量)
         /// </summary>
-        /// <param name="plainBytes">被加密的明文</param>
+        /// <param name="data">被加密的bytes</param>
         /// <param name="key">密钥</param>
-        /// <returns>密文</returns>
-        public static string AESEncrypt(string Data, string Key = DEFAULT_128_64STRING_KEY)
+        /// <returns>加密后的bytes</returns>
+        public static byte[] AESEncrypt(byte[] data, string key = DEFAULT_128_64STRING_KEY)
         {
             MemoryStream mStream = new MemoryStream();
             RijndaelManaged aes = new RijndaelManaged();
 
-            byte[] plainBytes = Encoding.UTF8.GetBytes(Data);
             byte[] bKey = new Byte[32];
-            Array.Copy(Encoding.UTF8.GetBytes(Key.PadRight(bKey.Length)), bKey, bKey.Length);
+            Array.Copy(Encoding.UTF8.GetBytes(key.PadRight(bKey.Length)), bKey, bKey.Length);
 
             aes.Mode = CipherMode.ECB;
             aes.Padding = PaddingMode.PKCS7;
@@ -32,11 +31,11 @@ namespace Framework.Utility
             CryptoStream cryptoStream = new CryptoStream(mStream, aes.CreateEncryptor(), CryptoStreamMode.Write);
             try
             {
-                cryptoStream.Write(plainBytes, 0, plainBytes.Length);
+                cryptoStream.Write(data, 0, data.Length);
                 cryptoStream.FlushFinalBlock();
-                return Convert.ToBase64String(mStream.ToArray());
+                return mStream.ToArray();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Debug.Log(e.ToString());
                 return null;
@@ -49,32 +48,32 @@ namespace Framework.Utility
             }
         }
 
-
         /// <summary>
-        /// AES解密(无向量)
+        /// AES加密(无向量)
         /// </summary>
-        /// <param name="encryptedBytes">被加密的明文</param>
+        /// <param name="data">被加密明文</param>
         /// <param name="key">密钥</param>
-        /// <returns>明文</returns>
-        public static string AESDecrypt(string Data, string Key = DEFAULT_128_64STRING_KEY)
+        /// <returns>密文</returns>
+        public static string AESEncrypt(string data, string key = DEFAULT_128_64STRING_KEY)
         {
-            byte[] bytes = AESDecryptToBytes(Data, Key);
-            return Encoding.UTF8.GetString(bytes);
+            byte[] bytes = Encoding.UTF8.GetBytes(data);
+
+            return Convert.ToBase64String(AESEncrypt(bytes, key));
         }
 
         /// <summary>
         /// AES解密(无向量)
         /// </summary>
-        /// <param name="encryptedBytes">被加密的明文</param>
+        /// <param name="data">被加密的bytes</param>
         /// <param name="key">密钥</param>
         /// <returns>明文Bytes</returns>
-        public static byte[] AESDecryptToBytes(string Data, string Key = DEFAULT_128_64STRING_KEY)
+        public static byte[] AESDecrypt(byte[] data, string Key = DEFAULT_128_64STRING_KEY)
         {
-            byte[] encryptedBytes = Convert.FromBase64String(Data);
+            
             byte[] bKey = new byte[32];
             Array.Copy(Encoding.UTF8.GetBytes(Key.PadRight(bKey.Length)), bKey, bKey.Length);
 
-            MemoryStream mStream = new MemoryStream(encryptedBytes);
+            MemoryStream mStream = new MemoryStream(data);
             RijndaelManaged aes = new RijndaelManaged();
             aes.Mode = CipherMode.ECB;
             aes.Padding = PaddingMode.PKCS7;
@@ -83,8 +82,8 @@ namespace Framework.Utility
             CryptoStream cryptoStream = new CryptoStream(mStream, aes.CreateDecryptor(), CryptoStreamMode.Read);
             try
             {
-                byte[] tmp = new byte[encryptedBytes.Length + 32];
-                int len = cryptoStream.Read(tmp, 0, encryptedBytes.Length + 32);
+                byte[] tmp = new byte[data.Length + 32];
+                int len = cryptoStream.Read(tmp, 0, data.Length + 32);
                 byte[] ret = new byte[len];
                 Array.Copy(tmp, 0, ret, 0, len);
                 return ret;
@@ -100,6 +99,19 @@ namespace Framework.Utility
                 mStream.Close();
                 aes.Clear();
             }
+        }
+
+        /// <summary>
+        /// AES解密(无向量)
+        /// </summary>
+        /// <param name="Data">被加密的明文</param>
+        /// <param name="key">密钥</param>
+        /// <returns>明文</returns>
+        public static string AESDecrypt(string Data, string Key = DEFAULT_128_64STRING_KEY)
+        {
+            byte[] encryptedBytes = Convert.FromBase64String(Data);
+            byte[] bytes = AESDecrypt(encryptedBytes, Key);
+            return Encoding.UTF8.GetString(bytes);
         }
     }
 }
