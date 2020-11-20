@@ -1,5 +1,5 @@
 # FFramework
-一个unity基本框架  
+一个unity基本库  
 包含unity常用await异步工具  
 
 音频管理  
