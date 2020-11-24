@@ -1,6 +1,5 @@
-﻿using System.Collections;
+﻿using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -34,7 +33,7 @@ public class FrameAnimation : MonoBehaviour
             }
 
             image.sprite = spriteList[i];
-            await Task.Delay((int)(intervals * 1000));
+            await UniTask.Delay((int)(intervals * 1000));
         }
 
         Play();

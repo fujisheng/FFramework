@@ -1,16 +1,16 @@
-﻿using System.Threading.Tasks;
-using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Framework.Module.Resource
 {
     public interface IResourceManager
     {
-        Task<T> LoadAsync<T>(string assetName) where T : Object;
-        Task<IList<T>> LoadAllAsync<T>(string lable) where T : Object;
-        Task<IList<T>> LoadAllAsync<T>(IList<string> names) where T : Object;
-        Task<IList<T>> LoadAllAsyncWithLabelAndNames<T>(IList<string> labelAndNames) where T : Object;
-        Task<GameObject> InstantiateAsync(string assetName, Vector3 position = default, Quaternion rotation = default, Transform parent = null, bool trackHandle = true);
+        UniTask<T> LoadAsync<T>(string assetName) where T : Object;
+        UniTask<IList<T>> LoadAllAsync<T>(string lable) where T : Object;
+        UniTask<IList<T>> LoadAllAsync<T>(IList<string> names) where T : Object;
+        UniTask<IList<T>> LoadAllAsyncWithLabelAndNames<T>(IList<string> labelAndNames) where T : Object;
+        UniTask<GameObject> InstantiateAsync(string assetName, Vector3 position = default, Quaternion rotation = default, Transform parent = null, bool trackHandle = true);
         void ReleaseInstance(GameObject gameObject);
     }
 }

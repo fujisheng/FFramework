@@ -1,4 +1,5 @@
-﻿using Framework.Module.Resource;
+﻿using Cysharp.Threading.Tasks;
+using Framework.Module.Resource;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -108,7 +109,7 @@ namespace Framework.Module.ObjectPool
             pools.Add(gameObjectName, pool);
         }
 
-        public async Task<GameObject> Pop(string gameObjectName)
+        public async UniTask<GameObject> Pop(string gameObjectName)
         {
             if (pools.ContainsKey(gameObjectName))
             {

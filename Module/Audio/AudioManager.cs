@@ -1,6 +1,6 @@
-﻿using Framework.Module.Resource;
+﻿using Cysharp.Threading.Tasks;
+using Framework.Module.Resource;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Framework.Module.Audio
@@ -53,7 +53,7 @@ namespace Framework.Module.Audio
             Channels[channelId].Volume = volume;
         }
 
-        async Task<AudioClip> GetAudioClip(string clipName)
+        async UniTask<AudioClip> GetAudioClip(string clipName)
         {
             if (Clips.ContainsKey(clipName))
             {

@@ -1,6 +1,6 @@
-﻿using Framework.Module.Resource;
+﻿using Cysharp.Threading.Tasks;
+using Framework.Module.Resource;
 using System;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Framework.Module.ObjectPool
@@ -36,7 +36,7 @@ namespace Framework.Module.ObjectPool
             this.resourceLoader = resourceLoader;
         }
 
-        protected override async Task<GameObject> New()
+        protected override async UniTask<GameObject> New()
         {
             if (string.IsNullOrEmpty(gameObjectName))
             {

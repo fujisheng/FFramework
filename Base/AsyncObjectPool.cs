@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Framework
@@ -27,8 +27,8 @@ namespace Framework
 
             pool.Push(obj);
         }
-        protected abstract Task<TObject> New();
-        public async Task<TObject> Pop()
+        protected abstract UniTask<TObject> New();
+        public async UniTask<TObject> Pop()
         {
             LastUseTime = Time.realtimeSinceStartup;
 

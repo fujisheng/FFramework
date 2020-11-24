@@ -1,7 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace Framework.Module.Resource
@@ -53,31 +53,31 @@ namespace Framework.Module.Resource
             }
         }
 
-        public async Task<T> GetAsync<T>(string assetName) where T : Object
+        public async UniTask<T> GetAsync<T>(string assetName) where T : Object
         {
             CheckIsReleased();
             return await resourceManager.LoadAsync<T>(assetName);
         }
 
-        public async Task<IList<T>> GetAllAsync<T>(string label) where T : Object
+        public async UniTask<IList<T>> GetAllAsync<T>(string label) where T : Object
         {
             CheckIsReleased();
             return await resourceManager.LoadAllAsync<T>(label);
         }
 
-        public async Task<IList<T>> GetAllAsync<T>(IList<string> names) where T : Object
+        public async UniTask<IList<T>> GetAllAsync<T>(IList<string> names) where T : Object
         {
             CheckIsReleased();
             return await resourceManager.LoadAllAsync<T>(names);
         }
 
-        public async Task<IList<T>> GetAllAsyncWithLabelAndNames<T>(IList<string> labelAndNames) where T : Object
+        public async UniTask<IList<T>> GetAllAsyncWithLabelAndNames<T>(IList<string> labelAndNames) where T : Object
         {
             CheckIsReleased();
             return await resourceManager.LoadAllAsyncWithLabelAndNames<T>(labelAndNames);
         }
 
-        public async Task Perload<T>(string assetName) where T : Object
+        public async UniTask Perload<T>(string assetName) where T : Object
         {
             CheckIsReleased();
             if(cache.ContainsKey(assetName))
@@ -89,7 +89,7 @@ namespace Framework.Module.Resource
             cache.Add(assetName, asset);
         }
 
-        public async Task PerloadAll<T>(string label) where T : Object
+        public async UniTask PerloadAll<T>(string label) where T : Object
         {
             CheckIsReleased();
             var assets = await GetAllAsync<T>(label);
@@ -104,7 +104,7 @@ namespace Framework.Module.Resource
             }
         }
 
-        public async Task PerloadAll<T>(IList<string> names) where T : Object
+        public async UniTask PerloadAll<T>(IList<string> names) where T : Object
         {
             CheckIsReleased();
             var assets = await GetAllAsync<T>(names);
@@ -119,7 +119,7 @@ namespace Framework.Module.Resource
             }
         }
 
-        public async Task PerloadAllWithLabelAndNames<T>(IList<string> labelAndNames) where T : Object
+        public async UniTask PerloadAllWithLabelAndNames<T>(IList<string> labelAndNames) where T : Object
         {
             CheckIsReleased();
             var assets = await GetAllAsyncWithLabelAndNames<T>(labelAndNames);
@@ -150,7 +150,7 @@ namespace Framework.Module.Resource
             return null;
         }
 
-        public async Task<GameObject> InstantiateAsync(string assetName, Vector3 position = default, Quaternion rotation = default, Transform parent = null, bool trackHandle = true)
+        public async UniTask<GameObject> InstantiateAsync(string assetName, Vector3 position = default, Quaternion rotation = default, Transform parent = null, bool trackHandle = true)
         {
             CheckIsReleased();
             return await resourceManager.InstantiateAsync(assetName, position, rotation, parent, trackHandle);
