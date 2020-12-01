@@ -16,7 +16,7 @@ namespace Framework.Module.Audio
 
         internal AudioManager()
         {
-            resourceLoader = ResourceLoader.Ctor();
+            resourceLoader = new ResourceLoader();
             InitChannel(5);
         }
 

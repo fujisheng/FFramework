@@ -13,13 +13,13 @@ namespace Framework.Module.ObjectPool
 
         public GameObjectPool()
         {
-            resourceLoader = ResourceLoader.Ctor();
+            resourceLoader = new ResourceLoader();
         }
 
         public GameObjectPool(string gameObjectName)
         {
             this.gameObjectName = gameObjectName;
-            resourceLoader = ResourceLoader.Ctor();
+            resourceLoader = new ResourceLoader();
         }
 
         public void SetGameObjectName(string gameObjectName)
