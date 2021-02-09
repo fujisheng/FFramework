@@ -2,6 +2,9 @@
 
 namespace Framework.Module
 {
+    /// <summary>
+    /// 模块依赖的模块特性
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public class Dependency : Attribute
     {

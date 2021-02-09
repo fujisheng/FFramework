@@ -2,12 +2,19 @@
 
 namespace Framework.Module.Loop
 {
+    /// <summary>
+    /// 循环管理器
+    /// </summary>
     internal sealed class LoopManager : Module, ILoopManager
     {
         List<System.Action> updateList = new List<System.Action>();
         List<System.Action> lateUpdateList = new List<System.Action>();
         List<System.Action> fixedUpdateList = new List<System.Action>();
 
+        /// <summary>
+        /// 添加一个Update
+        /// </summary>
+        /// <param name="update">对应的方法</param>
         public void AddUpdate(System.Action update)
         {
             if (updateList.Exists((_update) => _update == update))
@@ -18,6 +25,10 @@ namespace Framework.Module.Loop
             updateList.Add(update);
         }
 
+        /// <summary>
+        /// 移除一个Update
+        /// </summary>
+        /// <param name="update">对应的方法</param>
         public void RemoveUpdate(System.Action update)
         {
             if (updateList.Exists((_update) => _update == update))
@@ -26,6 +37,10 @@ namespace Framework.Module.Loop
             }
         }
 
+        /// <summary>
+        /// 添加一个LateUpdate
+        /// </summary>
+        /// <param name="lateUpdate">对应的方法</param>
         public void AddLateUpdate(System.Action lateUpdate)
         {
             if (lateUpdateList.Exists((_update) => _update == lateUpdate))
@@ -36,6 +51,10 @@ namespace Framework.Module.Loop
             lateUpdateList.Add(lateUpdate);
         }
 
+        /// <summary>
+        /// 移除一个LateUpdate
+        /// </summary>
+        /// <param name="lateUpdate">对应的方法</param>
         public void RemoveLateUpdate(System.Action lateUpdate)
         {
             if (lateUpdateList.Exists((_update) => _update == lateUpdate))
@@ -44,6 +63,10 @@ namespace Framework.Module.Loop
             }
         }
 
+        /// <summary>
+        /// 添加一个FixedUpdate
+        /// </summary>
+        /// <param name="fixedUpdate">对应的方法</param>
         public void AddFixedUpdate(System.Action fixedUpdate)
         {
             if (fixedUpdateList.Exists((_update) => _update == fixedUpdate))
@@ -54,6 +77,10 @@ namespace Framework.Module.Loop
             fixedUpdateList.Add(fixedUpdate);
         }
 
+        /// <summary>
+        /// 移除一个FixedUpdate
+        /// </summary>
+        /// <param name="fixedUpdate">对应的方法</param>
         public void RemoveFixedUpdate(System.Action fixedUpdate)
         {
             if (fixedUpdateList.Exists((_update) => _update == fixedUpdate))
@@ -62,6 +89,9 @@ namespace Framework.Module.Loop
             }
         }
 
+        /// <summary>
+        /// Update
+        /// </summary>
         internal override void OnUpdate()
         {
             for (int i = 0; i < updateList.Count; i++)
@@ -70,6 +100,9 @@ namespace Framework.Module.Loop
             }
         }
 
+        /// <summary>
+        /// LateUpdate
+        /// </summary>
         internal override void OnLateUpdate()
         {
             for (int i = 0; i < lateUpdateList.Count; i++)
@@ -78,6 +111,9 @@ namespace Framework.Module.Loop
             }
         }
 
+        /// <summary>
+        /// FixedUpdate
+        /// </summary>
         internal override void OnFixedUpdate()
         {
             for(int i = 0; i < fixedUpdateList.Count; i++)
@@ -86,6 +122,9 @@ namespace Framework.Module.Loop
             }
         }
 
+        /// <summary>
+        /// 关闭的时候
+        /// </summary>
         internal override void OnTearDown()
         {
             updateList.Clear();

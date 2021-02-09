@@ -9,5 +9,6 @@
         internal virtual void OnApplicationFocus(bool focus) { }
         internal virtual void OnApplicationPause(bool pause) { }
         internal virtual void OnApplicationQuit() { }
+        internal virtual void OnLowMemory() { }
     }
 }

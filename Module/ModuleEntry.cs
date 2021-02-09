@@ -8,6 +8,7 @@ namespace Framework.Module
         private void Awake()
         {
             DontDestroyOnLoad(gameObject);
+            Application.lowMemory += OnLowMemory;
         }
 
         private void Update()
@@ -28,6 +29,7 @@ namespace Framework.Module
         private void OnDestroy()
         {
             ModuleManager.Instance.TearDown();
+            Application.lowMemory -= OnLowMemory;
         }
 
         private void OnApplicationFocus(bool focus)
@@ -43,6 +45,11 @@ namespace Framework.Module
         private void OnApplicationQuit()
         {
             ModuleManager.Instance.ApplicationQuit();
+        }
+
+        private void OnLowMemory()
+        {
+            ModuleManager.Instance.OnLowMemory();
         }
     }
 }

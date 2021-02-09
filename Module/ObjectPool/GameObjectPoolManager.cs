@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Framework.Module.ObjectPool
 {
+    /// <summary>
+    /// 管理所有的GameObject池
+    /// </summary>
     [Dependency(typeof(IResourceManager))]
     internal sealed class GameObjectPoolManager : Module, IGameObjectPoolManager
     {
@@ -36,6 +39,10 @@ namespace Framework.Module.ObjectPool
             DisposeQueue();
         }
 
+        /// <summary>
+        /// 设置检查时间
+        /// </summary>
+        /// <param name="time">每隔多久检查是否有休眠的池子</param>
         public void SetCheckTime(float time)
         {
             if (time <= 0)
@@ -46,6 +53,10 @@ namespace Framework.Module.ObjectPool
             this.checkTime = time;
         }
 
+        /// <summary>
+        /// 设置休眠时间
+        /// </summary>
+        /// <param name="time">池子的休眠时间</param>
         public void SetSleepTime(float time)
         {
             if(time <= 0)
@@ -56,6 +67,9 @@ namespace Framework.Module.ObjectPool
             this.sleepTime = time;
         }
 
+        /// <summary>
+        /// 检查池子是否处于休眠状态
+        /// </summary>
         void CheckSleep()
         {
             List<string> removeKeys = new List<string>();
@@ -75,6 +89,9 @@ namespace Framework.Module.ObjectPool
             }
         }
 
+        /// <summary>
+        /// 释放队列
+        /// </summary>
         async void DisposeQueue()
         {
             if (disposeCurrent == false)
@@ -93,6 +110,11 @@ namespace Framework.Module.ObjectPool
             disposeCurrent = true;
         }
 
+        /// <summary>
+        /// 压入某个GameObject
+        /// </summary>
+        /// <param name="gameObjectName">名字</param>
+        /// <param name="gameObject">对应的GameObject</param>
         public void Push(string gameObjectName, GameObject gameObject)
         {
             gameObject.SetActive(false);
@@ -109,6 +131,11 @@ namespace Framework.Module.ObjectPool
             pools.Add(gameObjectName, pool);
         }
 
+        /// <summary>
+        /// 弹出某个名字的GameObject
+        /// </summary>
+        /// <param name="gameObjectName">名字</param>
+        /// <returns>GameObject</returns>
         public async UniTask<GameObject> Pop(string gameObjectName)
         {
             if (pools.ContainsKey(gameObjectName))
@@ -128,6 +155,9 @@ namespace Framework.Module.ObjectPool
             return await newPool.Pop();
         }
 
+        /// <summary>
+        /// 释放所有的池子
+        /// </summary>
         public void Release()
         {
             cachePool.Dispose();

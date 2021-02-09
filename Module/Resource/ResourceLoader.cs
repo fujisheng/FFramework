@@ -6,6 +6,9 @@ using Object = UnityEngine.Object;
 
 namespace Framework.Module.Resource
 {
+    /// <summary>
+    /// 资源加载器
+    /// </summary>
     public class ResourceLoader : IResourceLoader, IDisposable
     {
         IResourceManager resourceManager;
@@ -20,26 +23,56 @@ namespace Framework.Module.Resource
             }
         }
 
+        /// <summary>
+        /// 根据资源名字异步获取某个资源
+        /// </summary>
+        /// <typeparam name="T">资源类型</typeparam>
+        /// <param name="assetName">资源名字</param>
+        /// <returns>资源</returns>
         public async UniTask<T> GetAsync<T>(string assetName) where T : Object
         {
             return await resourceManager.LoadAsync<T>(assetName);
         }
 
+        /// <summary>
+        /// 根据标签异步获取所有资源啊
+        /// </summary>
+        /// <typeparam name="T">资源类型</typeparam>
+        /// <param name="label">资源标签</param>
+        /// <returns>所有为这个标签的资源</returns>
         public async UniTask<IList<T>> GetAllAsync<T>(string label) where T : Object
         {
             return await resourceManager.LoadAllAsync<T>(label);
         }
 
+        /// <summary>
+        /// 根据多个名字异步获取这些资源
+        /// </summary>
+        /// <typeparam name="T">资源类型</typeparam>
+        /// <param name="names">要获取的资源的名字</param>
+        /// <returns>所有的资源</returns>
         public async UniTask<IList<T>> GetAllAsync<T>(IList<string> names) where T : Object
         {
             return await resourceManager.LoadAllAsync<T>(names);
         }
 
+        /// <summary>
+        /// 根据标签和名字获取所有资源
+        /// </summary>
+        /// <typeparam name="T">资源类型</typeparam>
+        /// <param name="labelAndNames">标签和名字</param>
+        /// <returns>满足这些标签和名字的资源</returns>
         public async UniTask<IList<T>> GetAllAsyncWithLabelAndNames<T>(IList<string> labelAndNames) where T : Object
         {
             return await resourceManager.LoadAllAsyncWithLabelAndNames<T>(labelAndNames);
         }
 
+        /// <summary>
+        /// 预加载某个名字的资源
+        /// </summary>
+        /// <typeparam name="T">资源类型</typeparam>
+        /// <param name="assetName">资源名字</param>
+        /// <returns>task</returns>
         public async UniTask Perload<T>(string assetName) where T : Object
         {
             if(cache.ContainsKey(assetName))
@@ -51,6 +84,12 @@ namespace Framework.Module.Resource
             cache.Add(assetName, asset);
         }
 
+        /// <summary>
+        /// 根据标签预加载所有的资源
+        /// </summary>
+        /// <typeparam name="T">资源类型</typeparam>
+        /// <param name="label">标签</param>
+        /// <returns>task</returns>
         public async UniTask PerloadAll<T>(string label) where T : Object
         {
             var assets = await GetAllAsync<T>(label);
@@ -65,6 +104,12 @@ namespace Framework.Module.Resource
             }
         }
 
+        /// <summary>
+        /// 预加载所有名字的资源
+        /// </summary>
+        /// <typeparam name="T">资源类型</typeparam>
+        /// <param name="names">要预加载的资源的名字</param>
+        /// <returns>task</returns>
         public async UniTask PerloadAll<T>(IList<string> names) where T : Object
         {
             var assets = await GetAllAsync<T>(names);
@@ -79,6 +124,12 @@ namespace Framework.Module.Resource
             }
         }
 
+        /// <summary>
+        /// 通过标签和名字预加载资源
+        /// </summary>
+        /// <typeparam name="T">资源类型</typeparam>
+        /// <param name="labelAndNames">标签和名字</param>
+        /// <returns>task</returns>
         public async UniTask PerloadAllWithLabelAndNames<T>(IList<string> labelAndNames) where T : Object
         {
             var assets = await GetAllAsyncWithLabelAndNames<T>(labelAndNames);
@@ -93,6 +144,12 @@ namespace Framework.Module.Resource
             }
         }
 
+        /// <summary>
+        /// 从预加载的资源中同步获取某个资源
+        /// </summary>
+        /// <typeparam name="T">资源类型</typeparam>
+        /// <param name="assetName">资源名字</param>
+        /// <returns>资源</returns>
         public T Get<T>(string assetName) where T : Object
         {
             if (cache.TryGetValue(assetName, out Object asset))
@@ -107,11 +164,24 @@ namespace Framework.Module.Resource
             return null;
         }
 
+        /// <summary>
+        /// 异步实例化某个名字的prefab
+        /// </summary>
+        /// <param name="assetName">资源名字</param>
+        /// <param name="position">位置</param>
+        /// <param name="rotation">旋转</param>
+        /// <param name="parent">父物体</param>
+        /// <param name="trackHandle"></param>
+        /// <returns></returns>
         public async UniTask<GameObject> InstantiateAsync(string assetName, Vector3 position = default, Quaternion rotation = default, Transform parent = null, bool trackHandle = true)
         {
             return await resourceManager.InstantiateAsync(assetName, position, rotation, parent, trackHandle);
         }
 
+        /// <summary>
+        /// 销毁某个gameObject
+        /// </summary>
+        /// <param name="gameObject">要销毁的gameObject</param>
         public void ReleaseInstance(GameObject gameObject)
         {
             resourceManager.ReleaseInstance(gameObject);

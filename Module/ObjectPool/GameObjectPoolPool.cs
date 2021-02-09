@@ -1,5 +1,8 @@
 ﻿namespace Framework.Module.ObjectPool
 {
+    /// <summary>
+    /// GameObjectPool的池子
+    /// </summary>
     internal class GameObjectPoolPool : ObjectPool<GameObjectPool>
     {
         public override int Size => 10;

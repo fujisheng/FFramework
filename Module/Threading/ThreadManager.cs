@@ -6,33 +6,39 @@ using UnityEngine;
 
 namespace Framework.Module.Threading
 {
-    struct DelayedQueueItem
-    {
-        public float time;
-        public Action action;
-    }
-
+    /// <summary>
+    /// 子线程回调到主线程管理
+    /// </summary>
     internal sealed class ThreadManager : Module, IThreadManager
     {
         public static int maxThreads = 8;
         static int numThreads;
         List<Action> actions = new List<Action>();
-        List<DelayedQueueItem> delayed = new List<DelayedQueueItem>();
-        List<DelayedQueueItem> currentDelayed = new List<DelayedQueueItem>();
+        List<(float time, Action action)> delayed = new List<(float time, Action action)>();
+        List<(float time, Action action)> currentDelayed = new List<(float time, Action action)>();
         List<Action> currentActions = new List<Action>();
 
+        /// <summary>
+        /// 回调到主线程
+        /// </summary>
+        /// <param name="action">回调</param>
         public void QueueOnMainThread(Action action)
         {
             QueueOnMainThread(action, 0f);
         }
 
+        /// <summary>
+        /// 回调到主线程
+        /// </summary>
+        /// <param name="action">回调</param>
+        /// <param name="time">延迟时间</param>
         public void QueueOnMainThread(Action action, float time)
         {
             if (time != 0f)
             {
                 lock (delayed)
                 {
-                    delayed.Add(new DelayedQueueItem { time = Time.time + time, action = action });
+                    delayed.Add((Time.time + time, action));
                 }
             }
             else
@@ -44,6 +50,11 @@ namespace Framework.Module.Threading
             }
         }
 
+        /// <summary>
+        /// 开启一个子线程运行某个action
+        /// </summary>
+        /// <param name="a">任务</param>
+        /// <returns></returns>
         public Thread RunAsync(Action a)
         {
             while (numThreads >= maxThreads)

@@ -5,21 +5,39 @@
         IDebugger debugger;
         int level = (int)DebugLevel.All;
 
+        /// <summary>
+        /// 设置Debugger
+        /// </summary>
+        /// <param name="debugger">对应的debugger</param>
         public void SetDebugger(IDebugger debugger)
         {
             this.debugger = debugger;
         }
 
+        /// <summary>
+        /// 设置打印等级
+        /// </summary>
+        /// <param name="debugLevel">打印等级</param>
         public void SetLevel(DebugLevel debugLevel)
         {
             this.level = (int)debugLevel;
         }
 
+        /// <summary>
+        /// 判断是否有某个打印等级
+        /// </summary>
+        /// <param name="level">打印等级</param>
+        /// <returns></returns>
         bool HasLevel(DebugLevel level)
         {
             return !((this.level & (int)level) == 0);
         }
 
+        /// <summary>
+        /// 打印
+        /// </summary>
+        /// <param name="message">消息</param>
+        /// <param name="color">颜色</param>
         public void Log(object message, string color = "white")
         {
             if (!HasLevel(DebugLevel.Normal))
@@ -29,6 +47,10 @@
             debugger.Log(message, color);
         }
 
+        /// <summary>
+        /// 绿色的打印
+        /// </summary>
+        /// <param name="message">消息</param>
         public void LogG(object message)
         {
             if (!HasLevel(DebugLevel.Green))
@@ -38,6 +60,10 @@
             Log(message, "green");
         }
 
+        /// <summary>
+        /// 红色的打印
+        /// </summary>
+        /// <param name="message">消息</param>
         public void LogR(object message)
         {
             if (!HasLevel(DebugLevel.Red))
@@ -47,6 +73,10 @@
             Log(message, "red");
         }
 
+        /// <summary>
+        /// 黄色的打印
+        /// </summary>
+        /// <param name="message">消息</param>
         public void LogY(object message)
         {
             if (!HasLevel(DebugLevel.Yellow))
@@ -56,6 +86,10 @@
             Log(message, "yellow");
         }
 
+        /// <summary>
+        /// 蓝色的打印
+        /// </summary>
+        /// <param name="message">消息</param>
         public void LogB(object message)
         {
             if (!HasLevel(DebugLevel.Blue))
@@ -65,6 +99,10 @@
             Log(message, "blue");
         }
 
+        /// <summary>
+        /// 打印警告
+        /// </summary>
+        /// <param name="message">消息</param>
         public void LogWarning(object message)
         {
             if (!HasLevel(DebugLevel.Warning))
@@ -74,6 +112,10 @@
             debugger.LogWarning(message);
         }
 
+        /// <summary>
+        /// 打印错误
+        /// </summary>
+        /// <param name="message">消息</param>
         public void LogError(object message)
         {
             if (!HasLevel(DebugLevel.Error))
@@ -81,76 +123,6 @@
                 return;
             }
             debugger.LogError(message);
-        }
-
-        public void LogFormat(string format, params object[] args)
-        {
-            if (!HasLevel(DebugLevel.Normal))
-            {
-                return;
-            }
-            debugger.LogFormat(format, "white", args);
-        }
-
-        public void LogFormat(string format, string color, params object[] args)
-        {
-            if (!HasLevel(DebugLevel.Normal))
-            {
-                return;
-            }
-            debugger.LogFormat(format, color, args);
-        }
-
-        public void LogFormatR(string format, params object[] args)
-        {
-            if (!HasLevel(DebugLevel.Red))
-            {
-                return;
-            }
-            LogFormat(format, "red", args);
-        }
-
-        public void LogFormatG(string format, params object[] args)
-        {
-            if (!HasLevel(DebugLevel.Green))
-            {
-                return;
-            }
-            LogFormat(format, "green", args);
-        }
-        public void LogFormatB(string format, params object[] args)
-        {
-            if (!HasLevel(DebugLevel.Blue))
-            {
-                return;
-            }
-            LogFormat(format, "blue", args);
-        }
-        public void LogFormatY(string format, params object[] args)
-        {
-            if (!HasLevel(DebugLevel.Yellow))
-            {
-                return;
-            }
-            LogFormat(format, "yellow", args);
-        }
-
-        public void LogWarningFormat(string format, params object[] args)
-        {
-            if (!HasLevel(DebugLevel.Warning))
-            {
-                return;
-            }
-            debugger.LogWarningFormat(format, args);
-        }
-
-        public void LogErrorFormat(string format, params object[] args)
-        {
-            if (!HasLevel(DebugLevel.Error))
-            {
-                return;
-            }
-            debugger.LogErrorFormat(format, args);
         }
     }
 }

@@ -20,22 +20,6 @@ namespace Framework.Module.Debugger
         {
             Debug.LogError(message);
         }
-
-        public void LogFormat(string format, string color, params object[] args)
-        {
-            format = string.Format("<color={0}>{1}</color>", color, format);
-            Debug.LogFormat(format, args);
-        }
-
-        public void LogWarningFormat(string format, params object[] args)
-        {
-            Debug.LogWarningFormat(format, args);
-        }
-
-        public void LogErrorFormat(string format, params object[] args)
-        {
-            Debug.LogErrorFormat(format, args);
-        }
     }
 }
 

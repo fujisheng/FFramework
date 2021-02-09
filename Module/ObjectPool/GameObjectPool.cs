@@ -11,17 +11,28 @@ namespace Framework.Module.ObjectPool
         IResourceLoader resourceLoader;
         public override int Size => 10;
 
+        /// <summary>
+        /// 构造方法 采用默认的资源加载器
+        /// </summary>
         public GameObjectPool()
         {
             resourceLoader = new ResourceLoader();
         }
 
+        /// <summary>
+        /// 构造方法 采用默认的资源加载器
+        /// </summary>
+        /// <param name="gameObjectName">gameObject的名字</param>
         public GameObjectPool(string gameObjectName)
         {
             this.gameObjectName = gameObjectName;
             resourceLoader = new ResourceLoader();
         }
 
+        /// <summary>
+        /// 设置GameObject的名字
+        /// </summary>
+        /// <param name="gameObjectName">gameObject的名字</param>
         public void SetGameObjectName(string gameObjectName)
         {
             if(Count != 0)
@@ -31,11 +42,19 @@ namespace Framework.Module.ObjectPool
             this.gameObjectName = gameObjectName;
         }
 
+        /// <summary>
+        /// 设置资源加载器
+        /// </summary>
+        /// <param name="resourceLoader">资源加载器</param>
         public void SetResourceLoader(IResourceLoader  resourceLoader)
         {
             this.resourceLoader = resourceLoader;
         }
 
+        /// <summary>
+        /// 创建一个GameObject
+        /// </summary>
+        /// <returns></returns>
         protected override async UniTask<GameObject> New()
         {
             if (string.IsNullOrEmpty(gameObjectName))
@@ -51,6 +70,9 @@ namespace Framework.Module.ObjectPool
             return gameObject;
         }
 
+        /// <summary>
+        /// 释放这个池
+        /// </summary>
         public override void Release()
         {
             while (true)

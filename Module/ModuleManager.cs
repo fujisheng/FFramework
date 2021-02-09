@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Framework.Module
 {
+    /// <summary>
+    /// 模块管理器 外部通过模块接口可以访问到对应的模块
+    /// </summary>
     public class ModuleManager
     {
         readonly List<Module> loadedModules = new List<Module>();
@@ -29,6 +32,11 @@ namespace Framework.Module
             }
         }
 
+        /// <summary>
+        /// 根据模块的type获取依赖的模块
+        /// </summary>
+        /// <param name="moduleType"></param>
+        /// <returns></returns>
         Type[] GetModuleDependency(Type moduleType)
         {
             var dependency = moduleType.GetCustomAttribute<Dependency>();
@@ -39,6 +47,11 @@ namespace Framework.Module
             return dependency.dependency;
         }
 
+        /// <summary>
+        /// 判断依赖的模块是否已经加载
+        /// </summary>
+        /// <param name="dependType"></param>
+        /// <returns></returns>
         bool DependIsLoad(Type dependType)
         {
             foreach(var modules in loadedModules)
@@ -54,8 +67,8 @@ namespace Framework.Module
         /// <summary>
         /// 创建模块 如果这个模块有依赖会先创建其依赖
         /// </summary>
-        /// <param name="moduleName"></param>
-        /// <returns></returns>
+        /// <param name="moduleName">模块的名字</param>
+        /// <returns>模块</returns>
         Module CreateModule(string moduleName)
         {
             Type moduleType = AssemblyUtility.GetType(moduleName);
@@ -121,7 +134,11 @@ namespace Framework.Module
             return GetModule(moduleType) as T;
         }
 
-        // 获取游戏框架模块。如果要获取的游戏框架模块不存在，则自动创建该游戏框架模块
+        /// <summary>
+        /// 根据模块type获取模块 如果没有加载则会尝试创建并加载
+        /// </summary>
+        /// <param name="moduleType">模块类型</param>
+        /// <returns>模块</returns>
         Module GetModule(Type moduleType)
         {
             foreach (Module module in loadedModules)
@@ -135,8 +152,9 @@ namespace Framework.Module
             return CreateModule(moduleType.FullName);
         }
 
-
-
+        /// <summary>
+        /// 模块Update
+        /// </summary>
         internal void Update()
         {
             for(int i = 0; i < loadedModules.Count; i++)
@@ -145,6 +163,9 @@ namespace Framework.Module
             }
         }
 
+        /// <summary>
+        /// 模块LateUpdate
+        /// </summary>
         internal void LateUpdate()
         {
             for(int i = 0; i < loadedModules.Count; i++)
@@ -153,6 +174,9 @@ namespace Framework.Module
             }
         }
 
+        /// <summary>
+        /// 模块FixedUpdate
+        /// </summary>
         internal void FixedUpdate()
         {
             for (int i = 0; i < loadedModules.Count; i++)
@@ -161,6 +185,9 @@ namespace Framework.Module
             }
         }
 
+        /// <summary>
+        /// 模块关闭
+        /// </summary>
         internal void TearDown()
         {
             for (int i = loadedModules.Count - 1; i >= 0; i--)
@@ -169,6 +196,10 @@ namespace Framework.Module
             }
         }
 
+        /// <summary>
+        /// 程序聚焦
+        /// </summary>
+        /// <param name="focus"></param>
         internal void ApplicationFocus(bool focus)
         {
             for (int i = 0; i < loadedModules.Count; i++)
@@ -177,6 +208,10 @@ namespace Framework.Module
             }
         }
 
+        /// <summary>
+        /// 程序暂停
+        /// </summary>
+        /// <param name="pause"></param>
         internal void ApplicationPause(bool pause)
         {
             for (int i = 0; i < loadedModules.Count; i++)
@@ -185,11 +220,25 @@ namespace Framework.Module
             }
         }
 
+        /// <summary>
+        /// 程序退出
+        /// </summary>
         internal void ApplicationQuit()
         {
             for (int i = 0; i < loadedModules.Count; i++)
             {
                 loadedModules[i].OnApplicationQuit();
+            }
+        }
+
+        /// <summary>
+        /// 低内存
+        /// </summary>
+        internal void OnLowMemory()
+        {
+            for(int i = 0; i < loadedModules.Count; i++)
+            {
+                loadedModules[i].OnLowMemory();
             }
         }
     }
