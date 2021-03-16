@@ -2,12 +2,15 @@
 using Framework.Module.Resource;
 using System;
 using UnityEngine;
+using FInject;
 
 namespace Framework.Module.ObjectPool
 {
     internal class GameObjectPool : AsyncObjectPool<GameObject>, IGameObjectPool
     {
         string gameObjectName;
+
+        [Inject]
         IResourceLoader resourceLoader;
         public override int Size => 10;
 
