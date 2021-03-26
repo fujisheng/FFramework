@@ -1,4 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
+using FInject;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,13 +12,13 @@ namespace Framework.Module.Resource
     /// </summary>
     public class ResourceLoader : IResourceLoader, IDisposable
     {
-        IResourceManager resourceManager;
+        [Inject]
+        public IResourceManager resourceManager { set; private get; }
         Dictionary<string, Object> cache = new Dictionary<string, Object> ();
-        
-        public ResourceLoader()
+
+        void CheckResourceManager()
         {
-            resourceManager = ModuleManager.Instance.GetModule<IResourceManager>();
-            if(resourceManager == null)
+            if (resourceManager == null)
             {
                 throw new Exception("Please add module [ResourceManager] before using ResourceLoader");
             }
@@ -31,6 +32,7 @@ namespace Framework.Module.Resource
         /// <returns>资源</returns>
         public async UniTask<T> GetAsync<T>(string assetName) where T : Object
         {
+            CheckResourceManager();
             return await resourceManager.LoadAsync<T>(assetName);
         }
 
@@ -42,6 +44,7 @@ namespace Framework.Module.Resource
         /// <returns>所有为这个标签的资源</returns>
         public async UniTask<IList<T>> GetAllAsync<T>(string label) where T : Object
         {
+            CheckResourceManager();
             return await resourceManager.LoadAllAsync<T>(label);
         }
 
@@ -53,6 +56,7 @@ namespace Framework.Module.Resource
         /// <returns>所有的资源</returns>
         public async UniTask<IList<T>> GetAllAsync<T>(IList<string> names) where T : Object
         {
+            CheckResourceManager();
             return await resourceManager.LoadAllAsync<T>(names);
         }
 
@@ -64,6 +68,7 @@ namespace Framework.Module.Resource
         /// <returns>满足这些标签和名字的资源</returns>
         public async UniTask<IList<T>> GetAllAsyncWithLabelAndNames<T>(IList<string> labelAndNames) where T : Object
         {
+            CheckResourceManager();
             return await resourceManager.LoadAllAsyncWithLabelAndNames<T>(labelAndNames);
         }
 
@@ -75,7 +80,8 @@ namespace Framework.Module.Resource
         /// <returns>task</returns>
         public async UniTask Perload<T>(string assetName) where T : Object
         {
-            if(cache.ContainsKey(assetName))
+            CheckResourceManager();
+            if (cache.ContainsKey(assetName))
             {
                 return;
             }
@@ -92,6 +98,7 @@ namespace Framework.Module.Resource
         /// <returns>task</returns>
         public async UniTask PerloadAll<T>(string label) where T : Object
         {
+            CheckResourceManager();
             var assets = await GetAllAsync<T>(label);
             foreach(var asset in assets)
             {
@@ -112,6 +119,7 @@ namespace Framework.Module.Resource
         /// <returns>task</returns>
         public async UniTask PerloadAll<T>(IList<string> names) where T : Object
         {
+            CheckResourceManager();
             var assets = await GetAllAsync<T>(names);
             foreach(var asset in assets)
             {
@@ -132,6 +140,7 @@ namespace Framework.Module.Resource
         /// <returns>task</returns>
         public async UniTask PerloadAllWithLabelAndNames<T>(IList<string> labelAndNames) where T : Object
         {
+            CheckResourceManager();
             var assets = await GetAllAsyncWithLabelAndNames<T>(labelAndNames);
             foreach (var asset in assets)
             {
@@ -152,6 +161,7 @@ namespace Framework.Module.Resource
         /// <returns>资源</returns>
         public T Get<T>(string assetName) where T : Object
         {
+            CheckResourceManager();
             if (cache.TryGetValue(assetName, out Object asset))
             {
                 if(asset is GameObject)
@@ -175,6 +185,7 @@ namespace Framework.Module.Resource
         /// <returns></returns>
         public async UniTask<GameObject> InstantiateAsync(string assetName, Vector3 position = default, Quaternion rotation = default, Transform parent = null, bool trackHandle = true)
         {
+            CheckResourceManager();
             return await resourceManager.InstantiateAsync(assetName, position, rotation, parent, trackHandle);
         }
 
@@ -184,6 +195,7 @@ namespace Framework.Module.Resource
         /// <param name="gameObject">要销毁的gameObject</param>
         public void ReleaseInstance(GameObject gameObject)
         {
+            CheckResourceManager();
             resourceManager.ReleaseInstance(gameObject);
         }
 

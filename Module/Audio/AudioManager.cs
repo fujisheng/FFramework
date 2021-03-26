@@ -1,7 +1,9 @@
 ﻿using Cysharp.Threading.Tasks;
+using FInject;
 using Framework.Module.Resource;
 using System.Collections.Concurrent;
 using UnityEngine;
+using System;
 
 namespace Framework.Module.Audio
 {
@@ -14,9 +16,18 @@ namespace Framework.Module.Audio
         ConcurrentDictionary<int, AudioChannel> Channels = new ConcurrentDictionary<int, AudioChannel>();
         IResourceLoader resourceLoader;
 
+        [Inject]
+        public void SetResourcesLoader(IResourceLoader resourceLoader)
+        {
+            if(resourceLoader == null)
+            {
+                throw new NullReferenceException("resourceLoader can not be null");
+            }
+            this.resourceLoader = resourceLoader;
+        }
+
         internal AudioManager()
         {
-            resourceLoader = new ResourceLoader();
             InitChannel(5);
         }
 

@@ -1,8 +1,8 @@
 ﻿using Cysharp.Threading.Tasks;
+using FInject;
 using Framework.Module.Resource;
 using System;
 using UnityEngine;
-using FInject;
 
 namespace Framework.Module.ObjectPool
 {
@@ -11,7 +11,7 @@ namespace Framework.Module.ObjectPool
         string gameObjectName;
 
         [Inject]
-        IResourceLoader resourceLoader;
+        public IResourceLoader resourceLoader { set; private get; }
         public override int Size => 10;
 
         /// <summary>
@@ -19,7 +19,6 @@ namespace Framework.Module.ObjectPool
         /// </summary>
         public GameObjectPool()
         {
-            resourceLoader = new ResourceLoader();
         }
 
         /// <summary>
@@ -29,7 +28,6 @@ namespace Framework.Module.ObjectPool
         public GameObjectPool(string gameObjectName)
         {
             this.gameObjectName = gameObjectName;
-            resourceLoader = new ResourceLoader();
         }
 
         /// <summary>
@@ -43,15 +41,6 @@ namespace Framework.Module.ObjectPool
                 return;
             }
             this.gameObjectName = gameObjectName;
-        }
-
-        /// <summary>
-        /// 设置资源加载器
-        /// </summary>
-        /// <param name="resourceLoader">资源加载器</param>
-        public void SetResourceLoader(IResourceLoader  resourceLoader)
-        {
-            this.resourceLoader = resourceLoader;
         }
 
         /// <summary>

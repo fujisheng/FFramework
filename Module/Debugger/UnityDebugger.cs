@@ -3,7 +3,7 @@
 
 namespace Framework.Module.Debugger
 {
-    public class UnityDebuger : IDebugger
+    public class UnityDebugger : IDebugger
     {
         public void Log(object message, string color = "white")
         {

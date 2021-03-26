@@ -1,16 +1,21 @@
-﻿namespace Framework.Module.Debugger
+﻿using FInject;
+using System;
+
+namespace Framework.Module.Debugger
 {
-    internal sealed class DebuggerManager : Module, IDebugManager
+    internal sealed class DebuggerManager : Module, IDebuggerManager
     {
         IDebugger debugger;
         int level = (int)DebugLevel.All;
 
-        /// <summary>
-        /// 设置Debugger
-        /// </summary>
-        /// <param name="debugger">对应的debugger</param>
+        [Inject]
         public void SetDebugger(IDebugger debugger)
         {
+            if(debugger == null)
+            {
+                throw new NullReferenceException($"debugger can,t be null");
+            }
+
             this.debugger = debugger;
         }
 

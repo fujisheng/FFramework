@@ -1,7 +1,10 @@
-﻿namespace Framework.Module.Audio
+﻿using Framework.Module.Resource;
+
+namespace Framework.Module.Audio
 {
     public interface IAudioManager
     {
+        void SetResourcesLoader(IResourceLoader resourceLoader);
         void SetChannelIgnoreTimeScale(int channelId, bool ignore);
         void PlayAudio(int channelId, string clipName);
         void PlayAudio(ChannelType channelType, string clipName);

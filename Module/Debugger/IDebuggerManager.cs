@@ -1,6 +1,6 @@
 ﻿namespace Framework.Module.Debugger
 {
-    public interface IDebugManager
+    public interface IDebuggerManager
     {
         void SetDebugger(IDebugger debugger);
         void SetLevel(DebugLevel level);

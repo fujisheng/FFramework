@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using FInject;
 
 namespace Framework.Module
 {
@@ -15,6 +16,8 @@ namespace Framework.Module
 
         static ModuleManager instance;
         static GameObject moduleEntry;
+
+        public Injecter Injecter { set; internal get; }
 
         ModuleManager() { }
 
@@ -77,7 +80,7 @@ namespace Framework.Module
                 throw new Exception($"can't found this type {moduleName}");
             }
 
-            var module = Activator.CreateInstance(moduleType, true);
+            var module = Injecter.CreateInstance(moduleType);
             foreach (var mod in loadedModules)
             {
                 if (mod.GetType().FullName == moduleType.FullName)
@@ -113,6 +116,11 @@ namespace Framework.Module
         /// <remarks>如果要获取的游戏框架模块不存在，则自动创建该游戏框架模块和其依赖。</remarks>
         public T GetModule<T>() where T : class
         {
+            if(Injecter == null)
+            {
+                throw new NullReferenceException($"You must set Injecter first");
+            }
+
             Type interfaceType = typeof(T);
             if (!interfaceType.IsInterface)
             {
