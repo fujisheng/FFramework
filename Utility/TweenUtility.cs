@@ -1,4 +1,4 @@
-﻿using Coffee.UIExtensions;
+﻿//using Coffee.UIExtensions;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
@@ -46,16 +46,16 @@ namespace Framework.Utility
             }
         }
 
-        public static void SetAllGray(this GameObject gameObject, bool gray)
-        {
-            foreach (var com in gameObject.GetComponentsInChildren<UIEffect>(true))
-            {
-                if(com.effectMode == EffectMode.Grayscale)
-                {
-                    com.effectFactor = gray ? 1 : 0;
-                    com.colorFactor = gray ? 0 : 1;
-                }
-            }
-        }
+        //public static void SetAllGray(this GameObject gameObject, bool gray)
+        //{
+        //    foreach (var com in gameObject.GetComponentsInChildren<UIEffect>(true))
+        //    {
+        //        if(com.effectMode == EffectMode.Grayscale)
+        //        {
+        //            com.effectFactor = gray ? 1 : 0;
+        //            com.colorFactor = gray ? 0 : 1;
+        //        }
+        //    }
+        //}
     }
 }
