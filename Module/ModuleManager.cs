@@ -16,8 +16,7 @@ namespace Framework.Module
 
         static ModuleManager instance;
         static GameObject moduleEntry;
-
-        public Injecter Injecter { set; internal get; }
+        public IModuleInjectInfo injectInfo { get; private set; }
 
         ModuleManager() { }
 
@@ -33,6 +32,13 @@ namespace Framework.Module
                 }
                 return instance;
             }
+        }
+
+        public void SetInjecterInfo(IModuleInjectInfo injectInfo)
+        {
+            this.injectInfo = injectInfo;
+            Injecter.Context = injectInfo.context;
+            injectInfo.Initialize();
         }
 
         /// <summary>
@@ -116,7 +122,7 @@ namespace Framework.Module
         /// <remarks>如果要获取的游戏框架模块不存在，则自动创建该游戏框架模块和其依赖。</remarks>
         public T GetModule<T>() where T : class
         {
-            if(Injecter == null)
+            if(injectInfo == null)
             {
                 throw new NullReferenceException($"You must set Injecter first");
             }
