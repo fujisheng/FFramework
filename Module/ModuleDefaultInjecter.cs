@@ -6,19 +6,19 @@ namespace Framework.Module
 {
     public class ModuleDefaultInjectInfo : IModuleInjectInfo
     {
-        public Context context { get; private set; }
+        public Context Context { get; private set; }
 
         public ModuleDefaultInjectInfo()
         {
-            context = new Context();
+            Context = new Context();
         }
 
         public void Initialize()
         {
-            var resourceManager = ModuleManager.Instance.GetModule<IResourceManager>();
-            context.Bind<IResourceManager>().AsInstance(resourceManager);
-            context.Bind<IResourceLoader>().As<ResourceLoader>();
-            context.Bind<IDebugger>().As<UnityDebugger>();
+            var resourceManager = ModuleManager.GetModule<IResourceManager>();
+            Context.Bind<IResourceManager>().AsInstance(resourceManager);
+            Context.Bind<IResourceLoader>().As<ResourceLoader>();
+            Context.Bind<IDebugger>().As<UnityDebugger>();
         }
     }
 }

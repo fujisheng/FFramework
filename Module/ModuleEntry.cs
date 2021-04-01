@@ -13,43 +13,43 @@ namespace Framework.Module
 
         private void Update()
         {
-            ModuleManager.Instance.Update();
+            ModuleManager.Update();
         }
 
         private void LateUpdate()
         {
-            ModuleManager.Instance.LateUpdate();
+            ModuleManager.LateUpdate();
         }
 
         private void FixedUpdate()
         {
-            ModuleManager.Instance.FixedUpdate();
+            ModuleManager.FixedUpdate();
         }
 
         private void OnDestroy()
         {
-            ModuleManager.Instance.TearDown();
+            ModuleManager.TearDown();
             Application.lowMemory -= OnLowMemory;
         }
 
         private void OnApplicationFocus(bool focus)
         {
-            ModuleManager.Instance.ApplicationFocus(focus);
+            ModuleManager.ApplicationFocus(focus);
         }
 
         private void OnApplicationPause(bool pause)
         {
-            ModuleManager.Instance.ApplicationPause(pause);
+            ModuleManager.ApplicationPause(pause);
         }
 
         private void OnApplicationQuit()
         {
-            ModuleManager.Instance.ApplicationQuit();
+            ModuleManager.ApplicationQuit();
         }
 
         private void OnLowMemory()
         {
-            ModuleManager.Instance.OnLowMemory();
+            ModuleManager.OnLowMemory();
         }
     }
 }

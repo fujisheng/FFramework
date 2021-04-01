@@ -10,34 +10,21 @@ namespace Framework.Module
     /// <summary>
     /// 模块管理器 外部通过模块接口可以访问到对应的模块
     /// </summary>
-    public class ModuleManager
+    public static class ModuleManager
     {
-        readonly List<Module> loadedModules = new List<Module>();
+        static readonly List<Module> loadedModules = new List<Module>();
+        public static IModuleInjectInfo InjectInfo { get; private set; }
 
-        static ModuleManager instance;
-        static GameObject moduleEntry;
-        public IModuleInjectInfo injectInfo { get; private set; }
-
-        ModuleManager() { }
-
-        public static ModuleManager Instance
+        static ModuleManager() 
         {
-            get
-            {
-                if(instance == null)
-                {
-                    moduleEntry = new GameObject("[ModuleEntry]");
-                    moduleEntry.AddComponent<ModuleEntry>();
-                    instance = new ModuleManager();
-                }
-                return instance;
-            }
+            var moduleEntry = new GameObject("[ModuleEntry]");
+            moduleEntry.AddComponent<ModuleEntry>();
         }
 
-        public void SetInjecterInfo(IModuleInjectInfo injectInfo)
+        public static void SetInjectInfo(IModuleInjectInfo injectInfo)
         {
-            this.injectInfo = injectInfo;
-            Injecter.Context = injectInfo.context;
+            InjectInfo = injectInfo;
+            Injecter.Context = injectInfo.Context;
             injectInfo.Initialize();
         }
 
@@ -46,7 +33,7 @@ namespace Framework.Module
         /// </summary>
         /// <param name="moduleType"></param>
         /// <returns></returns>
-        Type[] GetModuleDependency(Type moduleType)
+        static Type[] GetModuleDependency(Type moduleType)
         {
             var dependency = moduleType.GetCustomAttribute<Dependency>();
             if(dependency == null)
@@ -61,7 +48,7 @@ namespace Framework.Module
         /// </summary>
         /// <param name="dependType"></param>
         /// <returns></returns>
-        bool DependIsLoad(Type dependType)
+        static bool DependIsLoad(Type dependType)
         {
             foreach(var modules in loadedModules)
             {
@@ -78,7 +65,7 @@ namespace Framework.Module
         /// </summary>
         /// <param name="moduleName">模块的名字</param>
         /// <returns>模块</returns>
-        Module CreateModule(string moduleName)
+        static Module CreateModule(string moduleName)
         {
             Type moduleType = AssemblyUtility.GetType(moduleName);
             if(moduleType == null)
@@ -120,9 +107,9 @@ namespace Framework.Module
         /// <typeparam name="T">要获取的游戏框架模块类型。</typeparam>
         /// <returns>要获取的游戏框架模块。</returns>
         /// <remarks>如果要获取的游戏框架模块不存在，则自动创建该游戏框架模块和其依赖。</remarks>
-        public T GetModule<T>() where T : class
+        public static T GetModule<T>() where T : class
         {
-            if(injectInfo == null)
+            if(InjectInfo == null)
             {
                 throw new NullReferenceException($"You must set Injecter first");
             }
@@ -153,7 +140,7 @@ namespace Framework.Module
         /// </summary>
         /// <param name="moduleType">模块类型</param>
         /// <returns>模块</returns>
-        Module GetModule(Type moduleType)
+        static Module GetModule(Type moduleType)
         {
             foreach (Module module in loadedModules)
             {
@@ -169,7 +156,7 @@ namespace Framework.Module
         /// <summary>
         /// 模块Update
         /// </summary>
-        internal void Update()
+        internal static void Update()
         {
             for(int i = 0; i < loadedModules.Count; i++)
             {
@@ -180,7 +167,7 @@ namespace Framework.Module
         /// <summary>
         /// 模块LateUpdate
         /// </summary>
-        internal void LateUpdate()
+        internal static void LateUpdate()
         {
             for(int i = 0; i < loadedModules.Count; i++)
             {
@@ -191,7 +178,7 @@ namespace Framework.Module
         /// <summary>
         /// 模块FixedUpdate
         /// </summary>
-        internal void FixedUpdate()
+        internal static void FixedUpdate()
         {
             for (int i = 0; i < loadedModules.Count; i++)
             {
@@ -202,7 +189,7 @@ namespace Framework.Module
         /// <summary>
         /// 模块关闭
         /// </summary>
-        internal void TearDown()
+        internal static void TearDown()
         {
             for (int i = loadedModules.Count - 1; i >= 0; i--)
             {
@@ -214,7 +201,7 @@ namespace Framework.Module
         /// 程序聚焦
         /// </summary>
         /// <param name="focus"></param>
-        internal void ApplicationFocus(bool focus)
+        internal static void ApplicationFocus(bool focus)
         {
             for (int i = 0; i < loadedModules.Count; i++)
             {
@@ -226,7 +213,7 @@ namespace Framework.Module
         /// 程序暂停
         /// </summary>
         /// <param name="pause"></param>
-        internal void ApplicationPause(bool pause)
+        internal static void ApplicationPause(bool pause)
         {
             for (int i = 0; i < loadedModules.Count; i++)
             {
@@ -237,7 +224,7 @@ namespace Framework.Module
         /// <summary>
         /// 程序退出
         /// </summary>
-        internal void ApplicationQuit()
+        internal static void ApplicationQuit()
         {
             for (int i = 0; i < loadedModules.Count; i++)
             {
@@ -248,7 +235,7 @@ namespace Framework.Module
         /// <summary>
         /// 低内存
         /// </summary>
-        internal void OnLowMemory()
+        internal static void OnLowMemory()
         {
             for(int i = 0; i < loadedModules.Count; i++)
             {

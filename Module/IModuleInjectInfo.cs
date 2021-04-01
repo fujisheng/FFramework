@@ -4,7 +4,7 @@ namespace Framework.Module
 {
     public interface IModuleInjectInfo
     {
-        Context context { get; }
+        Context Context { get; }
 
         void Initialize();
     }
