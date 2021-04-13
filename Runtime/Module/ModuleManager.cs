@@ -27,14 +27,6 @@ namespace Framework.Module
         }
 
         /// <summary>
-        /// 释放
-        /// </summary>
-        public static void Release()
-        {
-            TearDown();
-        }
-
-        /// <summary>
         /// 设置注入配置
         /// </summary>
         /// <param name="injectInfo">注入配置</param>
@@ -200,6 +192,17 @@ namespace Framework.Module
             for (int i = 0; i < loadedModules.Count; i++)
             {
                 loadedModules[i].OnFixedUpdate();
+            }
+        }
+
+        /// <summary>
+        /// 释放模块
+        /// </summary>
+        public static void Release()
+        {
+            for (int i = loadedModules.Count - 1; i >= 0; i--)
+            {
+                loadedModules[i].OnRelease();
             }
         }
 
