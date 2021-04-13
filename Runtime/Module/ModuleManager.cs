@@ -17,11 +17,27 @@ namespace Framework.Module
 
         static ModuleManager() 
         {
+            if (UnityEngine.Object.FindObjectOfType<ModuleEntry>())
+            {
+                throw new Exception("ModuleEntry is not singlon, please check other entry");
+            }
             var moduleEntry = new GameObject("[ModuleEntry]");
-            moduleEntry.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector;
+            moduleEntry.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
             moduleEntry.AddComponent<ModuleEntry>();
         }
 
+        /// <summary>
+        /// 释放
+        /// </summary>
+        public static void Release()
+        {
+            TearDown();
+        }
+
+        /// <summary>
+        /// 设置注入配置
+        /// </summary>
+        /// <param name="injectInfo">注入配置</param>
         public static void SetInjectInfo(IModuleInjectInfo injectInfo)
         {
             InjectInfo = injectInfo;
