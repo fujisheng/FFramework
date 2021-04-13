@@ -10,17 +10,42 @@ namespace Framework.Module.Resource.Editor
 {
     public class SetAssetsNameEditor : AssetPostprocessor
     {
-        static Dictionary<string, string> mapping = new Dictionary<string, string>();
-        static readonly string dirPath = "Assets/Sources";
-        static readonly string DefaultGroupName = "Default Local Group";
-        static readonly List<string> ignoreExtensions = new List<string>
+        static Dictionary<string, string> Mapping = new Dictionary<string, string>();
+        static FrameworkResourceSetting Setting;
+
+        [MenuItem("Tools/Framework/CreateResourceSetting")]
+        public static void CreateSetting()
         {
-            ".meta",
-            ".DS_Store",
-        };
+            if (!Directory.Exists("Assets/Editor Default Resources/"))
+            {
+                Directory.CreateDirectory("Assets/Editor Default Resources/");
+            }
+
+            var setting = ScriptableObject.CreateInstance<FrameworkResourceSetting>();
+            AssetDatabase.CreateAsset(setting, "Assets/Editor Default Resources/FrameworkResourcesSetting.asset");
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+
+        static void CheckSetting()
+        {
+            var setting = EditorGUIUtility.Load("FrameworkResourcesSetting.asset") as FrameworkResourceSetting;
+            if (setting == null)
+            {
+                Debug.LogWarning("FrameworkResourcesSetting is Empty, please create with menu [Tools/Framework/CreateResourceSetting]");
+                return;
+            }
+            Setting = setting;
+        }
 
         static void OnPostprocessAllAssets(string[] impertedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
+            CheckSetting();
+            if(Setting == null)
+            {
+                return;
+            }
+
             List<string> allPath = new List<string>();
             allPath.AddRange(impertedAssets);
             allPath.AddRange(deletedAssets);
@@ -30,7 +55,7 @@ namespace Framework.Module.Resource.Editor
             bool isAssetChanged = false;
             foreach(var path in allPath)
             {
-                if (path.StartsWith(dirPath))
+                if (path.StartsWith(Setting.sourcesPath))
                 {
                     isAssetChanged = true;
                     break;
@@ -43,14 +68,14 @@ namespace Framework.Module.Resource.Editor
             }
         }
         //TODO 后续改成更改一个只变一个  同时如果删除了资源对应的也移除
-        [MenuItem("Tools/Addressable/SetAddress")]
+        [MenuItem("Tools/Framework/SetResourcesAddress")]
         public static void SetAddress()
         {
-            mapping.Clear();
-            GetPath(dirPath);
-            foreach(var kv in mapping)
+            Mapping.Clear();
+            GetPath(Setting.sourcesPath);
+            foreach(var kv in Mapping)
             {
-                string subPath = kv.Value.Substring(dirPath.Length);
+                string subPath = kv.Value.Substring(Setting.sourcesPath.Length);
                 string[] names = subPath.Split('/');
                 string groupName = "";
                 for(int i = 0; i < names.Length - 1; i++)
@@ -61,7 +86,7 @@ namespace Framework.Module.Resource.Editor
                     }
                 }
                 string label = names[names.Length - 2];
-                CreateAddressableAssetEntry(kv.Value, kv.Key, label, string.IsNullOrEmpty(groupName) ? DefaultGroupName : groupName);
+                CreateAddressableAssetEntry(kv.Value, kv.Key, label, string.IsNullOrEmpty(groupName) ? Setting.defaultGroupName : groupName);
             }
             //AssetDatabase.CreateAsset(assetsNameMapping, $"{outputPath}/AssetsNameMapping.asset");
             AssetDatabase.Refresh();
@@ -94,7 +119,7 @@ namespace Framework.Module.Resource.Editor
             foreach (string file in Directory.GetFiles(dirPath))
             {
                 FileInfo fileInfo = new FileInfo(file);
-                if (ignoreExtensions.Contains(fileInfo.Extension))
+                if (Setting.ignoreExtensions.Contains(fileInfo.Extension))
                 {
                     continue;
                 }
@@ -106,13 +131,13 @@ namespace Framework.Module.Resource.Editor
                 //    fileName = fileName.Replace(kv.Key, kv.Value);
                 //}
 
-                if (mapping.ContainsKey(fileName))
+                if (Mapping.ContainsKey(fileName))
                 {
                     Debug.LogError($"已经包含这个名字的资源！！！请保证资源名字唯一  {fileName}");
                     return;
                 }
 
-                mapping.Add(fileName, filePath.Replace('\\', '/'));
+                Mapping.Add(fileName, filePath.Replace('\\', '/'));
             }
 
             if (Directory.GetDirectories(dirPath).Length > 0)
