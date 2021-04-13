@@ -18,6 +18,7 @@ namespace Framework.Module
         static ModuleManager() 
         {
             var moduleEntry = new GameObject("[ModuleEntry]");
+            moduleEntry.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector;
             moduleEntry.AddComponent<ModuleEntry>();
         }
 
