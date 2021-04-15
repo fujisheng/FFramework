@@ -2,120 +2,128 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Framework.Utility
+namespace Framework
 {
-    public static class StringUtility
+    public static partial class Utility
     {
-        static Dictionary<long, string> cache = new Dictionary<long, string>();
-
-        [ThreadStatic]
-        private static StringBuilder s_CachedStringBuilder = null;
-
-        /// <summary>
-        /// 获取格式化字符串。
-        /// </summary>
-        /// <param name="format">字符串格式。</param>
-        /// <param name="arg0">字符串参数 0。</param>
-        /// <returns>格式化后的字符串。</returns>
-        public static string Format(string format, object arg0)
+        public static class String
         {
-            if (format == null)
+            static Dictionary<int, string> cache = new Dictionary<int, string>();
+
+            [ThreadStatic]
+            private static StringBuilder cachedStringBuilder = null;
+
+            /// <summary>
+            /// 获取格式化字符串。
+            /// </summary>
+            /// <param name="format">字符串格式。</param>
+            /// <param name="arg0">字符串参数 0。</param>
+            /// <returns>格式化后的字符串。</returns>
+            public static string Format(string format, object arg0)
             {
-                throw new Exception("Format is invalid.");
+                if (format == null)
+                {
+                    throw new Exception("Format is invalid.");
+                }
+
+                CheckCachedStringBuilder();
+                cachedStringBuilder.Length = 0;
+                cachedStringBuilder.AppendFormat(format, arg0);
+                return cachedStringBuilder.ToString();
             }
 
-            CheckCachedStringBuilder();
-            s_CachedStringBuilder.Length = 0;
-            s_CachedStringBuilder.AppendFormat(format, arg0);
-            return s_CachedStringBuilder.ToString();
-        }
-
-        /// <summary>
-        /// 获取格式化字符串。
-        /// </summary>
-        /// <param name="format">字符串格式。</param>
-        /// <param name="arg0">字符串参数 0。</param>
-        /// <param name="arg1">字符串参数 1。</param>
-        /// <returns>格式化后的字符串。</returns>
-        public static string Format(string format, object arg0, object arg1)
-        {
-            if (format == null)
+            /// <summary>
+            /// 获取格式化字符串。
+            /// </summary>
+            /// <param name="format">字符串格式。</param>
+            /// <param name="arg0">字符串参数 0。</param>
+            /// <param name="arg1">字符串参数 1。</param>
+            /// <returns>格式化后的字符串。</returns>
+            public static string Format(string format, object arg0, object arg1)
             {
-                throw new Exception("Format is invalid.");
+                if (format == null)
+                {
+                    throw new Exception("Format is invalid.");
+                }
+
+                CheckCachedStringBuilder();
+                cachedStringBuilder.Length = 0;
+                cachedStringBuilder.AppendFormat(format, arg0, arg1);
+                return cachedStringBuilder.ToString();
             }
 
-            CheckCachedStringBuilder();
-            s_CachedStringBuilder.Length = 0;
-            s_CachedStringBuilder.AppendFormat(format, arg0, arg1);
-            return s_CachedStringBuilder.ToString();
-        }
-
-        /// <summary>
-        /// 获取格式化字符串。
-        /// </summary>
-        /// <param name="format">字符串格式。</param>
-        /// <param name="arg0">字符串参数 0。</param>
-        /// <param name="arg1">字符串参数 1。</param>
-        /// <param name="arg2">字符串参数 2。</param>
-        /// <returns>格式化后的字符串。</returns>
-        public static string Format(string format, object arg0, object arg1, object arg2)
-        {
-            if (format == null)
+            /// <summary>
+            /// 获取格式化字符串。
+            /// </summary>
+            /// <param name="format">字符串格式。</param>
+            /// <param name="arg0">字符串参数 0。</param>
+            /// <param name="arg1">字符串参数 1。</param>
+            /// <param name="arg2">字符串参数 2。</param>
+            /// <returns>格式化后的字符串。</returns>
+            public static string Format(string format, object arg0, object arg1, object arg2)
             {
-                throw new Exception("Format is invalid.");
+                if (format == null)
+                {
+                    throw new Exception("Format is invalid.");
+                }
+
+                CheckCachedStringBuilder();
+                cachedStringBuilder.Length = 0;
+                cachedStringBuilder.AppendFormat(format, arg0, arg1, arg2);
+                return cachedStringBuilder.ToString();
             }
 
-            CheckCachedStringBuilder();
-            s_CachedStringBuilder.Length = 0;
-            s_CachedStringBuilder.AppendFormat(format, arg0, arg1, arg2);
-            return s_CachedStringBuilder.ToString();
-        }
-
-        /// <summary>
-        /// 获取格式化字符串。
-        /// </summary>
-        /// <param name="format">字符串格式。</param>
-        /// <param name="args">字符串参数。</param>
-        /// <returns>格式化后的字符串。</returns>
-        public static string Format(string format, params object[] args)
-        {
-            if (format == null)
+            /// <summary>
+            /// 获取格式化字符串。
+            /// </summary>
+            /// <param name="format">字符串格式。</param>
+            /// <param name="args">字符串参数。</param>
+            /// <returns>格式化后的字符串。</returns>
+            public static string Format(string format, params object[] args)
             {
-                throw new Exception("Format is invalid.");
+                if (format == null)
+                {
+                    throw new Exception("Format is invalid.");
+                }
+
+                if (args == null)
+                {
+                    throw new Exception("Args is invalid.");
+                }
+
+                CheckCachedStringBuilder();
+                cachedStringBuilder.Length = 0;
+                cachedStringBuilder.AppendFormat(format, args);
+                return cachedStringBuilder.ToString();
             }
 
-            if (args == null)
+            private static void CheckCachedStringBuilder()
             {
-                throw new Exception("Args is invalid.");
+                if (cachedStringBuilder == null)
+                {
+                    cachedStringBuilder = new StringBuilder(1024);
+                }
             }
 
-            CheckCachedStringBuilder();
-            s_CachedStringBuilder.Length = 0;
-            s_CachedStringBuilder.AppendFormat(format, args);
-            return s_CachedStringBuilder.ToString();
-        }
-
-        private static void CheckCachedStringBuilder()
-        {
-            if (s_CachedStringBuilder == null)
+            /// <summary>
+            /// 如果已经缓存了结果则直接返回否则才连接
+            /// </summary>
+            /// <param name="left"></param>
+            /// <param name="right"></param>
+            /// <returns></returns>
+            public static string GetOrCombine(string left, string right)
             {
-                s_CachedStringBuilder = new StringBuilder(1024);
-            }
-        }
+                var key = Hash.CombineHash(left.GetHashCode(), right.GetHashCode());
+                bool get = cache.TryGetValue(key, out string result);
+                if (get)
+                {
+                    return result;
+                }
 
-        public static string GetOrAttach(string left, string right)
-        {
-            long key = (left.GetHashCode() << 32) + right.GetHashCode();
-            bool get = cache.TryGetValue(key, out string result);
-            if (get)
-            {
+                result = Format("{0}{1}", left, right);
+                cache.Add(key, result);
                 return result;
             }
-
-            result = left + right;
-            cache.Add(key, result);
-            return result;
         }
     }
-
 }

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Framework.Module.Resource.Editor
+namespace Framework.Service.Resource.Editor
 {
     public class FrameworkResourceSetting : ScriptableObject
     {

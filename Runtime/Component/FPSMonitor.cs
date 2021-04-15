@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Framework.Utility
+namespace Framework
 {
     public class FPSMonitor : MonoBehaviour
     {

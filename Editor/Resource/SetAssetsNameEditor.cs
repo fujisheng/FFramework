@@ -6,7 +6,7 @@ using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using System.Linq;
 
-namespace Framework.Module.Resource.Editor
+namespace Framework.Service.Resource.Editor
 {
     public class SetAssetsNameEditor : AssetPostprocessor
     {
@@ -32,7 +32,7 @@ namespace Framework.Module.Resource.Editor
             var setting = EditorGUIUtility.Load("FrameworkResourcesSetting.asset") as FrameworkResourceSetting;
             if (setting == null)
             {
-                Debug.LogWarning("FrameworkResourcesSetting is Empty, please create with menu [Tools/Framework/CreateResourceSetting]");
+                UnityEngine.Debug.LogWarning("FrameworkResourcesSetting is Empty, please create with menu [Tools/Framework/CreateResourceSetting]");
                 return;
             }
             Setting = setting;
@@ -133,7 +133,7 @@ namespace Framework.Module.Resource.Editor
 
                 if (Mapping.ContainsKey(fileName))
                 {
-                    Debug.LogError($"已经包含这个名字的资源！！！请保证资源名字唯一  {fileName}");
+                    UnityEngine.Debug.LogError($"已经包含这个名字的资源！！！请保证资源名字唯一  {fileName}");
                     return;
                 }
 

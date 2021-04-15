@@ -1,96 +1,99 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Framework.Utility
+namespace Framework
 {
-    public static class AssemblyUtility
+    public static partial class Utility
     {
-        private static readonly System.Reflection.Assembly[] Assemblies = null;
-        private static readonly Dictionary<string, Type> CachedTypes = new Dictionary<string, Type>(StringComparer.Ordinal);
-
-        static AssemblyUtility()
+        public static class Assembly
         {
-            Assemblies = AppDomain.CurrentDomain.GetAssemblies();
-        }
+            private static readonly System.Reflection.Assembly[] Assemblies = null;
+            private static readonly Dictionary<string, Type> CachedTypes = new Dictionary<string, Type>(StringComparer.Ordinal);
 
-        /// <summary>
-        /// 获取已加载的程序集。
-        /// </summary>
-        /// <returns>已加载的程序集。</returns>
-        public static System.Reflection.Assembly[] GetAssemblies()
-        {
-            return Assemblies;
-        }
-
-        /// <summary>
-        /// 获取已加载的程序集中的所有类型。
-        /// </summary>
-        /// <returns>已加载的程序集中的所有类型。</returns>
-        public static Type[] GetTypes()
-        {
-            List<Type> results = new List<Type>();
-            foreach (System.Reflection.Assembly assembly in Assemblies)
+            static Assembly()
             {
-                results.AddRange(assembly.GetTypes());
+                Assemblies = AppDomain.CurrentDomain.GetAssemblies();
             }
 
-            return results.ToArray();
-        }
-
-        /// <summary>
-        /// 获取已加载的程序集中的所有类型。
-        /// </summary>
-        /// <param name="results">已加载的程序集中的所有类型。</param>
-        public static void GetTypes(List<Type> results)
-        {
-            if (results == null)
+            /// <summary>
+            /// 获取已加载的程序集。
+            /// </summary>
+            /// <returns>已加载的程序集。</returns>
+            public static System.Reflection.Assembly[] GetAssemblies()
             {
-                throw new Exception("Results is invalid.");
+                return Assemblies;
             }
 
-            results.Clear();
-            foreach (System.Reflection.Assembly assembly in Assemblies)
+            /// <summary>
+            /// 获取已加载的程序集中的所有类型。
+            /// </summary>
+            /// <returns>已加载的程序集中的所有类型。</returns>
+            public static Type[] GetTypes()
             {
-                results.AddRange(assembly.GetTypes());
-            }
-        }
+                List<Type> results = new List<Type>();
+                foreach (System.Reflection.Assembly assembly in Assemblies)
+                {
+                    results.AddRange(assembly.GetTypes());
+                }
 
-        /// <summary>
-        /// 获取已加载的程序集中的指定类型。
-        /// </summary>
-        /// <param name="typeName">要获取的类型名。</param>
-        /// <returns>已加载的程序集中的指定类型。</returns>
-        public static Type GetType(string typeName)
-        {
-            if (string.IsNullOrEmpty(typeName))
-            {
-                throw new Exception("Type name is invalid.");
+                return results.ToArray();
             }
 
-            Type type = null;
-            if (CachedTypes.TryGetValue(typeName, out type))
+            /// <summary>
+            /// 获取已加载的程序集中的所有类型。
+            /// </summary>
+            /// <param name="results">已加载的程序集中的所有类型。</param>
+            public static void GetTypes(List<Type> results)
             {
-                return type;
+                if (results == null)
+                {
+                    throw new Exception("Results is invalid.");
+                }
+
+                results.Clear();
+                foreach (System.Reflection.Assembly assembly in Assemblies)
+                {
+                    results.AddRange(assembly.GetTypes());
+                }
             }
 
-            type = Type.GetType(typeName);
-            if (type != null)
+            /// <summary>
+            /// 获取已加载的程序集中的指定类型。
+            /// </summary>
+            /// <param name="typeName">要获取的类型名。</param>
+            /// <returns>已加载的程序集中的指定类型。</returns>
+            public static Type GetType(string typeName)
             {
-                CachedTypes.Add(typeName, type);
-                return type;
-            }
+                if (string.IsNullOrEmpty(typeName))
+                {
+                    throw new Exception("Type name is invalid.");
+                }
 
-            foreach (System.Reflection.Assembly assembly in Assemblies)
-            {
-                type = Type.GetType(string.Format("{0}, {1}", typeName, assembly.FullName));
+                Type type = null;
+                if (CachedTypes.TryGetValue(typeName, out type))
+                {
+                    return type;
+                }
+
+                type = Type.GetType(typeName);
                 if (type != null)
                 {
                     CachedTypes.Add(typeName, type);
                     return type;
                 }
-            }
 
-            return null;
+                foreach (System.Reflection.Assembly assembly in Assemblies)
+                {
+                    type = Type.GetType(string.Format("{0}, {1}", typeName, assembly.FullName));
+                    if (type != null)
+                    {
+                        CachedTypes.Add(typeName, type);
+                        return type;
+                    }
+                }
+
+                return null;
+            }
         }
     }
 }

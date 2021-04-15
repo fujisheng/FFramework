@@ -2,71 +2,74 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Framework.Utility
+namespace Framework
 {
-    public static class InstanceFactory
+    public static partial class Utility
     {
-        static bool Conditional(Type type, Type baseType, Type interfaceType)
+        public static class InstanceFactory
         {
-            if (type.IsAbstract || type.IsNotPublic)
+            static bool Conditional(Type type, Type baseType, Type interfaceType)
             {
-                return false;
-            }
-
-            if (baseType != null && (type.BaseType == null || type.BaseType != baseType))
-            {
-                return false;
-            }
-
-            if (interfaceType != null && interfaceType.IsInterface && type.GetInterface(interfaceType.Name) == null)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public static List<T> CreateInstances<T>(Type baseType, Type interfaceType = null, bool nonPublic = false)
-        {
-            List<T> ret = new List<T>();
-            foreach (var type in AssemblyUtility.GetTypes())
-            {
-                if (!Conditional(type, baseType, interfaceType))
+                if (type.IsAbstract || type.IsNotPublic)
                 {
-                    continue;
+                    return false;
                 }
 
-                object instance = Activator.CreateInstance(type, nonPublic);
-                try
+                if (baseType != null && (type.BaseType == null || type.BaseType != baseType))
                 {
-                    ret.Add((T)instance);
+                    return false;
                 }
-                catch
+
+                if (interfaceType != null && interfaceType.IsInterface && type.GetInterface(interfaceType.Name) == null)
                 {
-
+                    return false;
                 }
+
+                return true;
             }
-            if (ret.Count == 0)
+
+            public static List<T> CreateInstances<T>(Type baseType, Type interfaceType = null, bool nonPublic = false)
             {
-                Debug.LogWarningFormat("没有满足这些条件的Instances  baseType = {0}  interfaceType = {1}", baseType, interfaceType);
-                return null;
+                List<T> ret = new List<T>();
+                foreach (var type in Assembly.GetTypes())
+                {
+                    if (!Conditional(type, baseType, interfaceType))
+                    {
+                        continue;
+                    }
+
+                    object instance = Activator.CreateInstance(type, nonPublic);
+                    try
+                    {
+                        ret.Add((T)instance);
+                    }
+                    catch
+                    {
+
+                    }
+                }
+                if (ret.Count == 0)
+                {
+                    Debug.LogWarningFormat("没有满足这些条件的Instances  baseType = {0}  interfaceType = {1}", baseType, interfaceType);
+                    return null;
+                }
+                return ret;
             }
-            return ret;
-        }
 
-        public static T CreateInstance<T>(string typeName, bool nonPulic = false)
-        {
-            Type type = AssemblyUtility.GetType(typeName);
-
-            object instance = Activator.CreateInstance(type, nonPulic);
-
-            if (instance is T)
+            public static T CreateInstance<T>(string typeName, bool nonPulic = false)
             {
-                return (T)instance;
-            }
+                Type type = Assembly.GetType(typeName);
 
-            Debug.LogWarningFormat("创建Instance失败   typeName=>{0}", typeName);
-            return default;
+                object instance = Activator.CreateInstance(type, nonPulic);
+
+                if (instance is T)
+                {
+                    return (T)instance;
+                }
+
+                Debug.LogWarningFormat("创建Instance失败   typeName=>{0}", typeName);
+                return default;
+            }
         }
     }
 }
