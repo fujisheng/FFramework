@@ -23,7 +23,7 @@ namespace Framework
                 MemoryStream mStream = new MemoryStream();
                 RijndaelManaged aes = new RijndaelManaged();
 
-                byte[] bKey = new Byte[32];
+                byte[] bKey = new byte[32];
                 Array.Copy(Encoding.UTF8.GetBytes(key.PadRight(bKey.Length)), bKey, bKey.Length);
 
                 aes.Mode = CipherMode.ECB;
