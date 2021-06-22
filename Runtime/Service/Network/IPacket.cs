@@ -1,6 +1,6 @@
 ﻿namespace Framework.Service.Network
 {
-    public interface IMessage
+    public interface IPacket
     {
         int Id { get; set; }
         byte[] Bytes { get; set; }

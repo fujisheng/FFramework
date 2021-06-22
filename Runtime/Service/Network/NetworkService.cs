@@ -2,11 +2,11 @@
 
 namespace Framework.Service.Network
 {
-    internal sealed class NetworkService : Service
+    internal sealed class NetworkService : Service, INetworkService
     {
-        IConnector connector;
+        INetworkChannel connector;
         IPacker packer;
-        IObjectPool<IMessage> messagePool;
+        IObjectPool<IPacket> messagePool;
 
         public NetworkService()
         {
@@ -27,7 +27,7 @@ namespace Framework.Service.Network
         /// 设置连接器
         /// </summary>
         /// <param name="connector"></param>
-        public void SetConnector(IConnector connector)
+        public void SetNetworkChannel(INetworkChannel connector)
         {
             this.connector = connector;
 
@@ -37,7 +37,7 @@ namespace Framework.Service.Network
                 return;
             }
 
-            connector.OnReceive = OnReceive;
+            connector.OnReceive += OnReceive;
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace Framework.Service.Network
         /// 发送一个消息
         /// </summary>
         /// <param name="message"></param>
-        public void Send(IMessage message)
+        public void Send(IPacket message)
         {
             if(connector == null || !connector.IsConnected)
             {
@@ -86,7 +86,7 @@ namespace Framework.Service.Network
         /// <param name="message">最终需要的东西</param>
         void OnReceive(byte[] bytes)
         {
-            IMessage message = packer.Unpack(bytes);
+            IPacket message = packer.Unpack(bytes);
             //TODO 分发消息
         }
 

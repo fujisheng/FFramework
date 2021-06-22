@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Framework.Service.Network
 {
-    public class Message : IMessage
+    public class Message : IPacket
     {
         public int Id { get; set; }
         public byte[] Bytes { get; set; }

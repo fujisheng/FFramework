@@ -2,10 +2,10 @@
 
 namespace Framework.Service.Network
 {
-    public interface IConnector
+    public interface INetworkChannel
     {
         bool IsConnected { get; }
-        Action OnConnented { get; set; }
+        Action<IAsyncResult> OnConnented { get; set; }
         Action OnConnectionFailed { get; set; }
         Action OnClosed { get; set; }
         Action<byte[]> OnReceive { get; set; }

@@ -1,17 +1,16 @@
 ﻿using System;
 using System.IO;
-using UnityEngine;
 
 namespace Framework.Service.Network
 {
     public class Packer : IPacker
     {
         MemoryStream memoryStream;
-        IObjectPool<IMessage> messagePool;
+        IObjectPool<IPacket> packetPool;
 
-        public void SetMessagePool(IObjectPool<IMessage> messagePool)
+        public void SetMessagePool(IObjectPool<IPacket> packetPool)
         {
-            this.messagePool = messagePool;
+            this.packetPool = packetPool;
         }
 
         /// <summary>
@@ -20,7 +19,7 @@ namespace Framework.Service.Network
         /// <param name="length"></param>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        public IMessage Unpack(byte[] bytes)
+        public IPacket Unpack(byte[] bytes)
         {
             using (memoryStream = new MemoryStream())
             {
@@ -36,7 +35,7 @@ namespace Framework.Service.Network
                     ushort errorCode = reader.ReadUInt16();
                     byte[] data = reader.ReadBytes(messageLength);
                     int msgId = (cmd << 8) + act;
-                    IMessage message = messagePool.Pop();
+                    IPacket message = packetPool.Pop();
                     message.Id = msgId;
                     message.Length = messageLength;
                     message.Bytes = data;
@@ -56,7 +55,7 @@ namespace Framework.Service.Network
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public byte[] Pack(IMessage message)
+        public byte[] Pack(IPacket message)
         {
             using (memoryStream = new MemoryStream())
             {
@@ -78,7 +77,7 @@ namespace Framework.Service.Network
                 byte[] payload = memoryStream.ToArray();
 
                 message.Clear();
-                messagePool.Push(message);
+                packetPool.Push(message);
                 return payload;
             }
         }

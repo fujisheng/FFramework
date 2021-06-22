@@ -1,9 +1,9 @@
 ﻿namespace Framework.Service.Network
 {
-    internal class MessagePool : ObjectPool<IMessage>
+    internal class MessagePool : ObjectPool<IPacket>
     {
         public override int Size => 10;
-        protected override IMessage New()
+        protected override IPacket New()
         {
             return new Message();
         }

@@ -1,33 +1,27 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using ProtoBuf;
 using System.IO;
-using UnityEngine;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Framework.Service.Network
 {
     public class ProtobufSerializer : ISerializer
     {
-        public byte[] Deserialize(IMessage packet)
+        public byte[] Deserialize<T>(T packet)
         {
-            throw new System.NotImplementedException();
-            //MemoryStream ms = new MemoryStream();
-            //BinaryFormatter bm = new BinaryFormatter();
-            //bm.Serialize(ms, p);
-            //Serializer.Serialize<Person>(ms, p);
-            //byte[] data = ms.ToArray();//length=27  709
-
-            //反序列化操作
-            //MemoryStream ms1 = new MemoryStream(data);
-            //BinaryFormatter bm1 = new BinaryFormatter();
-            //Person p1 = bm.Deserialize(ms1) as Person;
-            //Person p1 = Serializer.Deserialize<Person>(ms1);
-            //Console.ReadKey();
+            using (MemoryStream ms = new MemoryStream())
+            {
+                Serializer.Serialize<T>(ms, packet);
+                byte[] data = ms.ToArray();
+                return data;
+            }
         }
 
-        public IMessage Serialize(byte[] bytes)
+        public T Serialize<T>(byte[] bytes)
         {
-            throw new System.NotImplementedException();
+            using (MemoryStream ms1 = new MemoryStream(bytes))
+            {
+                var p1 = Serializer.Deserialize<T>(ms1);
+                return p1;
+            }
         }
     }
 }

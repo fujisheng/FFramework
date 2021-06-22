@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using UnityEngine;
 
 namespace Framework.Service.Network
 {
-    public class TcpConnector : IConnector
+    public class TcpChannel : INetworkChannel
     {
         const int MAX_READ = 2048 * 1024;
-        TcpClient client;
-        NetworkStream networkStream;
+        Socket client;
+        MemoryStream stream;
         byte[] byteBuffer;
         Queue<byte[]> sendQueue;
         Queue<byte[]> recvQueue;
@@ -28,7 +30,7 @@ namespace Framework.Service.Network
         /// <summary>
         /// 连接成功的时候调用
         /// </summary>
-        public Action OnConnented { get; set; }
+        public Action<IAsyncResult> OnConnented { get; set; }
 
         /// <summary>
         /// 连接失败的时候调用
@@ -45,14 +47,16 @@ namespace Framework.Service.Network
         /// </summary>
         public Action<byte[]> OnReceive { get; set; }
 
-        public TcpConnector()
+        public TcpChannel()
         {
             sendQueue = new Queue<byte[]>();
+            recvQueue = new Queue<byte[]>();
             byteBuffer = new byte[MAX_READ];
             bytesPool = new BytesPool(MAX_READ);
+            stream = new MemoryStream();
         }
 
-        ~TcpConnector()
+        ~TcpChannel()
         {
             Close();
         }
@@ -66,25 +70,10 @@ namespace Framework.Service.Network
         {
             try
             {
-                IPAddress[] address = Dns.GetHostAddresses(ip);
-                if (address.Length == 0)
-                {
-                    UnityEngine.Debug.LogError("ip地址非法!!!");
-                    return;
-                }
-                if (address[0].AddressFamily == AddressFamily.InterNetworkV6)
-                {
-                    client = new TcpClient(AddressFamily.InterNetworkV6);
-                }
-                else
-                {
-                    client = new TcpClient(AddressFamily.InterNetwork);
-                }
-
-                client.NoDelay = true;
-                client.SendTimeout = 1000;
-                client.ReceiveTimeout = 1000;
-                client.BeginConnect(ip, port, OnConnected, null);
+                var ipAddress = IPAddress.Parse(ip);
+                var addressFamily = ipAddress.AddressFamily == AddressFamily.InterNetworkV6 ? AddressFamily.InterNetworkV6 : AddressFamily.InterNetwork;
+                client = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
+                client.BeginConnect(ipAddress, port, OnConnected, client);
             }
             catch (Exception e)
             {
@@ -93,16 +82,22 @@ namespace Framework.Service.Network
             }
         }
 
+        byte[] buffer = new byte[1024];
+
+        /// <summary>
+        /// 连接成功的回调
+        /// </summary>
+        /// <param name="result"></param>
         void OnConnected(IAsyncResult result)
         {
-            TcpClient client = result.AsyncState as TcpClient;
+            var state = (Socket)result.AsyncState;
             try
             {
-                client.EndConnect(result);
-                networkStream = client.GetStream();
-                OnConnented?.Invoke();
+                state.EndConnect(result);
+                OnConnented?.Invoke(result);
                 UnityEngine.Debug.Log("成功连接到服务器！！！");
-                networkStream.BeginRead(byteBuffer, 0, MAX_READ, OnRead, client);
+                client.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, OnRead, client);
+                //client.BeginReceive(stream.GetBuffer(), (int)stream.Position, (int)(stream.Length - stream.Position), SocketFlags.None, OnRead, client);
             }
             catch (Exception ex)
             {
@@ -114,35 +109,50 @@ namespace Framework.Service.Network
 
         void OnRead(IAsyncResult result)
         {
-            int bytesRead = 0;
-            try
-            {
-                lock (networkStream)
-                {
-                    bytesRead = networkStream.EndRead(result);
-                }
-                if (bytesRead <= 0)
-                {
-                    Close();
-                    UnityEngine.Debug.LogWarning("Connection was closed by the server: bytesRead < 1");
-                    return;
-                }
+            var bytes = new byte[1024];
+            var data = stream.GetBuffer();
+            UnityEngine.Debug.Log(bytesToString(buffer));
+            //int bytesRead = 0;
+            //try
+            //{
+            //    lock (stream)
+            //    {
+            //        bytesRead = stream.EndRead(result);
+            //    }
+            //    if (bytesRead <= 0)
+            //    {
+            //        Close();
+            //        UnityEngine.Debug.LogWarning("Connection was closed by the server: bytesRead < 1");
+            //        return;
+            //    }
 
-                byte[] recv = bytesPool.Pop();
-                Array.Copy(byteBuffer, recv, byteBuffer.Length);
-                recvQueue.Enqueue(recv);
+            //    byte[] recv = new byte[1024];// bytesPool.Pop();
+            //    Array.Copy(byteBuffer, recv, byteBuffer.Length);
+            //    recvQueue.Enqueue(recv);
 
-                lock (networkStream)
-                {
-                    Array.Clear(byteBuffer, 0, byteBuffer.Length);
-                    networkStream.BeginRead(byteBuffer, 0, MAX_READ, OnRead, null);
-                }
-            }
-            catch (Exception ex)
+            //    lock (stream)
+            //    {
+            //        Array.Clear(byteBuffer, 0, byteBuffer.Length);
+            //        stream.BeginRead(byteBuffer, 0, MAX_READ, OnRead, null);
+            //        UnityEngine.Debug.Log(bytesToString(recv));
+            //        UnityEngine.Debug.Log(Encoding.UTF8.GetString(recv));
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    UnityEngine.Debug.LogErrorFormat("接收消息失败:{0}", ex.ToString());
+            //    Close();
+            //}
+        }
+
+        public static string bytesToString(byte[] bytes)
+        {
+            var result = "";
+            foreach (var b in bytes)
             {
-                UnityEngine.Debug.LogErrorFormat("接收消息失败:{0}", ex.ToString());
-                Close();
+                result += b;
             }
+            return result;
         }
 
         /// <summary>
@@ -193,7 +203,7 @@ namespace Framework.Service.Network
         void WriteMessage(byte[] bytes)
         {
             writeCurrentComplete = false;
-            networkStream.BeginWrite(bytes, 0, bytes.Length, OnWrited, null);
+            stream.BeginWrite(bytes, 0, bytes.Length, OnWrited, null);
         }
 
         void OnWrited(IAsyncResult result)
@@ -213,7 +223,7 @@ namespace Framework.Service.Network
             sendQueue.Clear();
             recvQueue.Clear();
             bytesPool.Dispose();
-            networkStream.Close();
+            stream.Close();
             client.Close();
             OnClosed?.Invoke();
         }
