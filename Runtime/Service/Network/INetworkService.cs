@@ -1,12 +1,19 @@
-﻿namespace Framework.Service.Network
+﻿using System;
+
+namespace Framework.Service.Network
 {
     public interface INetworkService
     {
-        void SetPacker(IPacker packer);
+        Action<IAsyncResult> OnConnectionSuccessfulHandler { get; set; }
+        Action<string> OnConnectionFailedHandler { get; set; }
+        Action OnClosedHandler { get; set; }
+        Action<IPacket> OnReceiveHandler { get; set; }
+        void SetPackager(IPackager packer);
         void SetNetworkChannel(INetworkChannel channel);
-
+        void SetEncryptor(IEncryptor encryptor);
         void Connect(string ip, int port);
-
         void Send(IPacket packet);
+        void Send<T>(int id, T data);
+        void Close();
     }
 }

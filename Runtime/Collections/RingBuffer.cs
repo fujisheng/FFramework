@@ -60,6 +60,24 @@ namespace Framework.Collections
         }
 
         /// <summary>
+        /// 获取多项
+        /// </summary>
+        /// <param name="length">长度</param>
+        /// <param name="buffer">结果缓冲</param>
+        public void Get(int length, T[] buffer)
+        {
+            if(buffer.Length != length)
+            {
+                throw new InvalidOperationException("lenght != buffer.length");
+            }
+
+            for(int i = 0; i < length; i++)
+            {
+                buffer[i] = Get();
+            }
+        }
+
+        /// <summary>
         /// 添加一项数据
         /// </summary>
         /// <param name="item"></param>
@@ -79,6 +97,18 @@ namespace Framework.Collections
             else 
             {
                 AddToBuffer(item, false);
+            }
+        }
+
+        /// <summary>
+        /// 添加多项数据
+        /// </summary>
+        /// <param name="items"></param>
+        public void Put(T[] items)
+        {
+            foreach(var item in items)
+            {
+                Put(item);
             }
         }
 

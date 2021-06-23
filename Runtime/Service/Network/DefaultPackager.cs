@@ -3,25 +3,28 @@ using System.IO;
 
 namespace Framework.Service.Network
 {
-    public class Packer : IPacker
+    public class DefaultPackager : IPackager
     {
-        MemoryStream memoryStream;
         IObjectPool<IPacket> packetPool;
+        private DefaultPackager() { }
 
-        public void SetMessagePool(IObjectPool<IPacket> packetPool)
+        /// <summary>
+        /// 通过PacketPool构造Packager
+        /// </summary>
+        /// <param name="packetPool"></param>
+        public DefaultPackager(IObjectPool<IPacket> packetPool)
         {
             this.packetPool = packetPool;
         }
 
         /// <summary>
-        /// 将bytes转换为message
+        /// 将消息打包成packet
         /// </summary>
-        /// <param name="length"></param>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        public IPacket Unpack(byte[] bytes)
+        public IPacket Pack(byte[] bytes)
         {
-            using (memoryStream = new MemoryStream())
+            using (var memoryStream = new MemoryStream())
             {
                 try
                 {
@@ -35,12 +38,12 @@ namespace Framework.Service.Network
                     ushort errorCode = reader.ReadUInt16();
                     byte[] data = reader.ReadBytes(messageLength);
                     int msgId = (cmd << 8) + act;
-                    IPacket message = packetPool.Pop();
-                    message.Id = msgId;
-                    message.Length = messageLength;
-                    message.Bytes = data;
+                    IPacket packet = packetPool.Pop();
+                    packet.Id = msgId;
+                    packet.Length = messageLength;
+                    packet.Bytes = data;
                     reader.Close();
-                    return message;
+                    return packet;
                 }
                 catch(Exception ex)
                 {
@@ -51,40 +54,35 @@ namespace Framework.Service.Network
         }
 
         /// <summary>
-        /// 将mssage转换为bytes
+        /// 将packet解包成bytes
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="packet"></param>
         /// <returns></returns>
-        public byte[] Pack(IPacket message)
+        public byte[] Unpack(IPacket packet)
         {
-            using (memoryStream = new MemoryStream())
+            using (var memoryStream = new MemoryStream())
             {
                 memoryStream.Position = 0;
                 BinaryWriter writer = new BinaryWriter(memoryStream);
-                int msglen = message.Length;
+                int msglen = packet.Length;
                 //消息长度
                 writer.Write(msglen);
-                byte cmd = (byte)(message.Id >> 8);
-                byte act = (byte)(message.Id & 0x00ff);
+                byte cmd = (byte)(packet.Id >> 8);
+                byte act = (byte)(packet.Id & 0x00ff);
                 //消息ID
                 writer.Write(cmd);
                 writer.Write(act);
                 //错误码
                 writer.Write((ushort)0);
                 //消息内容
-                writer.Write(message.Bytes);
+                writer.Write(packet.Bytes);
                 writer.Flush();
                 byte[] payload = memoryStream.ToArray();
 
-                message.Clear();
-                packetPool.Push(message);
+                packet.Release();
+                packetPool.Push(packet);
                 return payload;
             }
-        }
-
-        public void Close()
-        {
-            memoryStream.Close();
         }
     }
 }

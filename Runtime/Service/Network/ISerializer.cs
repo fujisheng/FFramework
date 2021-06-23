@@ -1,10 +1,8 @@
-﻿using System.IO;
-
-namespace Framework.Service.Network
+﻿namespace Framework.Service.Network
 {
     public interface ISerializer
     {
-        T Serialize<T>(byte[] destination);
-        byte[] Deserialize<T>(T packet);
+        T Serialize<T>(byte[] bytes);
+        byte[] Deserialize<T>(T data);
     }
 }

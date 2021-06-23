@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
 namespace Framework.Service.Network
 {
-    public class Message : IPacket
+    public struct Packet : IPacket
     {
         public int Id { get; set; }
         public byte[] Bytes { get; set; }
         public int Length { get; set; }
 
-        public void Clear()
+        public void Release()
         {
             Array.Clear(Bytes, 0, Bytes.Length);
             Length = 0;
