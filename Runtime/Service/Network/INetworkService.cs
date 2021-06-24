@@ -11,9 +11,11 @@ namespace Framework.Service.Network
         void SetPackager(IPackager packer);
         void SetNetworkChannel(INetworkChannel channel);
         void SetEncryptor(IEncryptor encryptor);
+        void SetSerializer(ISerializer serializer);
         void Connect(string ip, int port);
         void Send(IPacket packet);
-        void Send<T>(int id, T data);
+        void Send(byte[] bytes);
+        void Send<T>(ushort id, T data);
         void Close();
     }
 }

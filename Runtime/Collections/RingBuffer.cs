@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace Framework.Collections
 {
@@ -8,19 +6,13 @@ namespace Framework.Collections
     /// 环形缓冲
     /// </summary>
     /// <typeparam name="T">缓冲的数据类型</typeparam>
-    public class RingBuffer<T> : IEnumerable<T>, IEnumerable, ICollection<T>, ICollection 
+    public class RingBuffer<T>
     {
-        protected int head = 0;
-        protected int tail = 0;
-        protected int size = 0;
+        int writePosition = 0;
+        int readPosition = 0;
+        int size = 0;
 
-        protected T[] buffer;
-        readonly bool allowOverflow;
-
-        /// <summary>
-        /// 是否允许溢出
-        /// </summary>
-        public bool AllowOverflow { get { return allowOverflow; } }
+        T[] buffer;
 
         /// <summary>
         /// 容量
@@ -34,234 +26,87 @@ namespace Framework.Collections
 
         public RingBuffer() : this(4) { }
 
-        public RingBuffer(int capacity) : this(capacity, false) { }
-
-        public RingBuffer(int capacity, bool overflow)
+        public RingBuffer(int capacity)
         {
             buffer = new T[capacity];
-            allowOverflow = overflow;
         }
 
         /// <summary>
-        /// 获取下一项
+        /// 获取buffer
         /// </summary>
         /// <returns></returns>
-        public T Get() 
+        public T[] GetBuffer()
         {
-            if (size == 0)
-            { 
-                throw new System.InvalidOperationException("Buffer is empty"); 
+            return buffer;
+        }
+
+        /// <summary>
+        /// 写入数据
+        /// </summary>
+        /// <param name="data"></param>
+        public void Write(T data)
+        {
+            size++;
+            buffer[writePosition] = data;
+            writePosition = (writePosition + 1) % Capacity;
+        }
+
+        /// <summary>
+        /// 读取数据
+        /// </summary>
+        /// <returns></returns>
+        public T Read()
+        {
+            if(size == 0)
+            {
+                return default(T);
             }
 
-            T item = buffer[head];
-            head = (head + 1) % Capacity;
+            T data = buffer[readPosition];
+            readPosition = (readPosition + 1) % Capacity;
             size--;
-            return item;
+            return data;
         }
 
         /// <summary>
-        /// 获取多项
+        /// 写入一串数据
         /// </summary>
-        /// <param name="length">长度</param>
-        /// <param name="buffer">结果缓冲</param>
-        public void Get(int length, T[] buffer)
+        /// <param name="datas"></param>
+        public void Write(T[] datas)
         {
-            if(buffer.Length != length)
+            for (int i = 0; i < datas.Length; i++)
             {
-                throw new InvalidOperationException("lenght != buffer.length");
-            }
-
-            for(int i = 0; i < length; i++)
-            {
-                buffer[i] = Get();
+                Write(datas[i]);
             }
         }
 
         /// <summary>
-        /// 添加一项数据
+        /// 读取一串数据
         /// </summary>
-        /// <param name="item"></param>
-        public void Put(T item) 
+        /// <param name="length"></param>
+        /// <param name="buffer"></param>
+        public void Read(int length, T[] buffer)
         {
-            if(tail == head && size != 0) 
+            var l = Math.Min(length, buffer.Length);
+            for(int i = 0; i < l; i++)
             {
-                if(allowOverflow) 
-                {
-                    AddToBuffer(item, true);
-                }
-                else 
-                {
-                    throw new InvalidOperationException("The RingBuffer is full");
-                }
+                buffer[i] = Read();
             }
-            else 
-            {
-                AddToBuffer(item, false);
-            }
-        }
-
-        /// <summary>
-        /// 添加多项数据
-        /// </summary>
-        /// <param name="items"></param>
-        public void Put(T[] items)
-        {
-            foreach(var item in items)
-            {
-                Put(item);
-            }
-        }
-
-        protected void AddToBuffer(T toAdd, bool overflow) 
-        {
-            if(overflow) 
-            {
-                head = (head + 1) % Capacity;
-            }
-            else 
-            {
-                size++;
-            }
-            buffer[tail] = toAdd;
-            tail = (tail + 1) % Capacity;
-        }
-
-        #region IEnumerable Members
-        public IEnumerator<T> GetEnumerator() 
-        {
-            int _index = head;
-            for(int i = 0; i < size; i++, _index = (_index + 1) % Capacity)
-            {
-                yield return buffer[_index];
-            }
-        }
-
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() 
-        {
-            return GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator() 
-        {
-            return (IEnumerator)GetEnumerator();
-        }
-        #endregion
-
-        #region ICollection<T> Members
-        public int Count { get { return size; } }
-        public bool IsReadOnly { get { return false; } }
-
-        public void Add(T item) 
-        {
-            Put(item);
-        }
-        
-        /// <summary>
-        /// 判断是否包含某一项
-        /// </summary>
-        /// <param name="item"></param>
-        /// <returns>是否包含</returns>
-        public bool Contains(T item) 
-        {
-            EqualityComparer<T> comparer = EqualityComparer<T>.Default;
-            int index = head;
-            for(int i = 0; i < size; i++, index = (index + 1) % Capacity) 
-            {
-                if (comparer.Equals(item, buffer[index]))
-                { 
-                    return true; 
-                }
-            }
-            return false;
         }
 
         /// <summary>
         /// 清空
         /// </summary>
-        public void Clear() 
+        public void Clear()
         {
-            for(int i = 0; i < Capacity; i++) 
-            {
-                buffer[i] = default(T);
-            }
-            head = 0;
-            tail = 0;
+            readPosition = 0;
+            writePosition = 0;
             size = 0;
         }
 
-        /// <summary>
-        /// 拷贝到一个数组
-        /// </summary>
-        /// <param name="array">数组</param>
-        /// <param name="arrayIndex"></param>
-        public void CopyTo(T[] array, int arrayIndex) 
+        public override string ToString()
         {
-            int index = head;
-            for(int i = 0; i < size; i++, arrayIndex++, index = (index + 1) % Capacity) 
-            {
-                array[arrayIndex] = buffer[index];
-            }
+            return $"readPosition:{readPosition} writePosition:{writePosition}";
         }
-
-        /// <summary>
-        /// 移除某一项
-        /// </summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        public bool Remove(T item) 
-        {
-            int index = head;
-            int removeIndex = 0;
-            bool foundItem = false;
-            EqualityComparer<T> comparer = EqualityComparer<T>.Default;
-            for(int i = 0; i < size; i++, index = (index + 1) % Capacity) 
-            {
-                if(comparer.Equals(item, buffer[index])) 
-                {
-                    removeIndex = index;
-                    foundItem = true;
-                    break;
-                }
-            }
-
-            if(foundItem) 
-            {
-                T[] newBuffer = new T[size - 1];
-                index = head;
-                bool pastItem = false;
-
-                for(int i = 0; i < size - 1; i++, index = (index + 1) % Capacity) 
-                {
-                    if(index == removeIndex) 
-                    {
-                        pastItem = true;
-                    }
-                    if(pastItem)
-                    {
-                        newBuffer[index] = buffer[(index + 1) % Capacity];
-                    }
-                    else 
-                    {
-                        newBuffer[index] = buffer[index];
-                    }
-                }
-
-                size--;
-                buffer = newBuffer;
-                return true;
-            }
-            return false;
-        }
-        #endregion
-
-        #region ICollection Members
-        public Object SyncRoot { get { return this; } }
-
-        public bool IsSynchronized { get { return false; } }
-        void ICollection.CopyTo(Array array, int index) 
-        {
-            CopyTo((T[])array, index);
-        }
-        #endregion
     }
 }

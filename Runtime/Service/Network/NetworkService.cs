@@ -49,6 +49,15 @@ namespace Framework.Service.Network
         }
 
         /// <summary>
+        /// 设置序列化器
+        /// </summary>
+        /// <param name="serializer"></param>
+        public void SetSerializer(ISerializer serializer)
+        {
+            this.serializer = serializer;
+        }
+
+        /// <summary>
         /// 连接到服务器
         /// </summary>
         /// <param name="ip"></param>
@@ -91,20 +100,38 @@ namespace Framework.Service.Network
             }
 
             byte[] bytes = packager.Unpack(packet);
-            if(bytes == null || bytes.Length == 0)
+            Send(bytes);
+        }
+
+        /// <summary>
+        /// 通过一个数据类型发送一个数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="id"></param>
+        /// <param name="data"></param>
+        public void Send<T>(ushort id, T data)
+        {
+            var bytes = serializer.Serialize<T>(data);
+            var bcc = PacketHead.CountBCC(bytes, 0, bytes.Length);
+            //UnityEngine.Debug.Log($"sendMsg bcc:{bcc}");
+            var encryptBytes = encryptor == null ? bytes : encryptor.Encrypt(bytes, 0, bytes.Length);
+            bytes = packager.Unpack(id, encryptBytes, bcc);
+            Send(bytes);
+        }
+
+        /// <summary>
+        /// 直接发送一个byte数组
+        /// </summary>
+        /// <param name="bytes"></param>
+        public void Send(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length == 0)
             {
                 UnityEngine.Debug.LogWarning("要发送的消息为空!!!");
                 return;
             }
 
-            var encryptBytes = encryptor == null ? bytes : encryptor.Encrypt(bytes, 0, bytes.Length);
-            channel.Send(encryptBytes);
-        }
-
-        public void Send<T>(int id, T data)
-        {
-            var bytes = serializer.Deserialize<T>(data);
-
+            channel.Send(bytes);
         }
 
         public void AddListener<T>(int id, Action<object> listener)
@@ -118,8 +145,15 @@ namespace Framework.Service.Network
         /// <param name="bytes">收到的bytes</param>
         void OnReceive(byte[] bytes)
         {
-            var decryptBytes = encryptor == null ? bytes : encryptor.Decrypt(bytes, 0, bytes.Length);
+            //for(int i = 0; i< 100; i++)
+            //{
+            //    UnityEngine.Debug.Log(bytes[i]);
+            //}
+            
             IPacket packet = packager.Pack(bytes);
+            var decryptBytes = encryptor == null ? packet.Data : encryptor.Decrypt(packet.Data, 0, packet.Data.Length);
+            packet.Data = decryptBytes;
+            UnityEngine.Debug.Log($"receiveBytes:{packet.Data.Length}");
             OnReceiveHandler?.Invoke(packet);
         }
 

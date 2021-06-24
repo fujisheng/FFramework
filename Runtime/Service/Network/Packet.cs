@@ -4,15 +4,13 @@ namespace Framework.Service.Network
 {
     public struct Packet : IPacket
     {
-        public int Id { get; set; }
-        public byte[] Bytes { get; set; }
-        public int Length { get; set; }
-
+        public PacketHead Head { get; set; }
+        public byte[] Data { get; set; }
+       
         public void Release()
         {
-            Array.Clear(Bytes, 0, Bytes.Length);
-            Length = 0;
-            Id = 0;
+            Array.Clear(Data, 0, Data.Length);
+            Head = default;
         }
     }
 }

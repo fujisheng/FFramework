@@ -1,17 +1,30 @@
 ﻿using Framework.Collections;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace Framework.Service.Network
 {
     public class TcpChannel : INetworkChannel
     {
-        const int maxRead = 1024;
         readonly Socket socket;
+
+        /// <summary>
+        /// 接收的包体最大大小
+        /// </summary>
+        const int sendPacketMaxSize = 1024 * 1024;
+
+        /// <summary>
+        /// 接收buffer的容量
+        /// </summary>
+        const int recvBufferCapacity = sendPacketMaxSize * 8;
+
+        Queue<byte[]> recvQueue;
         readonly RingBuffer<byte> recvBuffer;
-        readonly RingBuffer<byte> sendBuffer;
-        readonly byte[] buffer; 
+        byte[] buffer;
 
         /// <summary>
         /// 是否已经连接到服务器
@@ -39,9 +52,9 @@ namespace Framework.Service.Network
         public TcpChannel()
         {
             socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-            recvBuffer = new RingBuffer<byte>(maxRead * 10);
-            sendBuffer = new RingBuffer<byte>(maxRead * 10);
-            buffer = new byte[maxRead];
+            recvBuffer = new RingBuffer<byte>(recvBufferCapacity);
+            buffer = new byte[sendPacketMaxSize];
+            recvQueue = new Queue<byte[]>();
         }
 
         ~TcpChannel()
@@ -59,7 +72,6 @@ namespace Framework.Service.Network
             try
             {
                 var ipAddress = IPAddress.Parse(ip);
-                //var addressFamily = ipAddress.AddressFamily == AddressFamily.InterNetworkV6 ? AddressFamily.InterNetworkV6 : AddressFamily.InterNetwork;
                 socket.BeginConnect(ipAddress, port, OnConnectionSuccessful, socket);
             }
             catch (Exception e)
@@ -95,8 +107,32 @@ namespace Framework.Service.Network
         /// <param name="result"></param>
         void OnReceive(IAsyncResult result)
         {
-            recvBuffer.Put(buffer);
-            Array.Clear(buffer, 0, buffer.Length);
+            try
+            {
+                var ts = result as Socket;
+                
+                //Array.Clear(buffer, 0, buffer.Length);
+
+                //var bytesReceived = ts.EndReceive(result);
+                //if(bytesReceived <= 0)
+                //{
+                //    Close();
+                //    return;
+                //}
+
+                UnityEngine.Debug.Log("OnReceive");
+                var data = new byte[sendPacketMaxSize];
+                Array.Copy(buffer, data, buffer.Length);
+                Array.Clear(buffer, 0, buffer.Length);
+                //recvBuffer.Write(data);
+                recvQueue.Enqueue(data);
+                //result.AsyncWaitHandle.Close();
+                socket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, OnReceive, socket);
+            }
+            catch(Exception ex)
+            {
+
+            }
         }
 
         /// <summary>
@@ -114,8 +150,7 @@ namespace Framework.Service.Network
             {
                 return;
             }
-
-            sendBuffer.Put(bytes);
+            socket.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, OnSend, socket);
         }
 
         /// <summary>
@@ -123,20 +158,17 @@ namespace Framework.Service.Network
         /// </summary>
         public void OnUpdate()
         {
-            //TODO 缓存这两个buffer
-            if(sendBuffer.Size > 0)
+            if(recvQueue.Count > 0)
             {
-                var send = new byte[maxRead];
-                sendBuffer.Get(maxRead, send);
-                socket.BeginSend(send, 0, send.Length, SocketFlags.None, OnSend, socket);
+                var data = recvQueue.Dequeue();
+                OnReceiveHandler?.Invoke(data);
             }
-
-            if(recvBuffer.Size > 0)
-            {
-                var recv = new byte[maxRead];
-                recvBuffer.Get(maxRead, recv);
-                OnReceiveHandler?.Invoke(recv);
-            }
+            //if(recvBuffer.Size > 0)
+            //{
+            //    var recv = new byte[sendPacketMaxSize];
+            //    recvBuffer.Read(sendPacketMaxSize, recv);
+            //    OnReceiveHandler?.Invoke(recv);
+            //}
         }
 
         /// <summary>
@@ -158,7 +190,6 @@ namespace Framework.Service.Network
                 return;
             }
             recvBuffer.Clear();
-            sendBuffer.Clear();
             Array.Clear(buffer, 0, buffer.Length);
             socket.Close();
         }

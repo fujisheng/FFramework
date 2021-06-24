@@ -1,21 +1,22 @@
 ﻿using ProtoBuf;
+using System;
 using System.IO;
 
 namespace Framework.Service.Network
 {
     public class ProtobufSerializer : ISerializer
     {
-        public byte[] Deserialize<T>(T packet)
+        public byte[] Serialize<T>(T data)
         {
             using (MemoryStream ms = new MemoryStream())
             {
-                Serializer.Serialize<T>(ms, packet);
-                byte[] data = ms.ToArray();
-                return data;
+                Serializer.Serialize<T>(ms, data);
+                byte[] bytes = ms.ToArray();
+                return bytes;
             }
         }
 
-        public T Serialize<T>(byte[] bytes)
+        public T Deserialize<T>(byte[] bytes)
         {
             using (MemoryStream ms1 = new MemoryStream(bytes))
             {

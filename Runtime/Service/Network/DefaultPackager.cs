@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 
 namespace Framework.Service.Network
 {
@@ -24,32 +25,38 @@ namespace Framework.Service.Network
         /// <returns></returns>
         public IPacket Pack(byte[] bytes)
         {
-            using (var memoryStream = new MemoryStream())
+            using (var stream = new MemoryStream())
             {
-                try
+                using(var reader = new BinaryReader(stream))
                 {
-                    BinaryReader reader = new BinaryReader(memoryStream);
-                    memoryStream.Seek(0, SeekOrigin.End);
-                    memoryStream.Write(bytes, 0, bytes.Length);
-                    memoryStream.Seek(0, SeekOrigin.Begin);
-                    int messageLength = reader.ReadInt32();
+                    stream.Seek(0, SeekOrigin.End);
+                    stream.Write(bytes, 0, bytes.Length);
+                    stream.Seek(0, SeekOrigin.Begin);
+
+                    //消息长度
+                    int length = reader.ReadInt32();
+                    //cmd
                     byte cmd = reader.ReadByte();
+                    //act
                     byte act = reader.ReadByte();
-                    ushort errorCode = reader.ReadUInt16();
-                    byte[] data = reader.ReadBytes(messageLength);
-                    int msgId = (cmd << 8) + act;
+                    //flags
+                    byte flags = reader.ReadByte();
+                    //bcc
+                    byte bcc = reader.ReadByte();
+
+                    UnityEngine.Debug.Log($"length:{length} cmd:{cmd} act:{act} flags:{flags} bcc:{bcc}");
+                    //UnityEngine.Debug.Log(BitConverter.ToInt32(reversL, reversL.Length));
+                    //data
+                    byte[] data = reader.ReadBytes(length);
+
+                    ushort msgId = (ushort)((cmd << 8) | act);
                     IPacket packet = packetPool.Pop();
-                    packet.Id = msgId;
-                    packet.Length = messageLength;
-                    packet.Bytes = data;
+
+                    packet.Head = new PacketHead(msgId, cmd, act, flags, bcc);
+                    packet.Data = data;
                     reader.Close();
                     return packet;
                 }
-                catch(Exception ex)
-                {
-                    UnityEngine.Debug.LogErrorFormat("UnpackMessage Error:{0}", ex.ToString());
-                }
-                return null;
             }
         }
 
@@ -60,29 +67,51 @@ namespace Framework.Service.Network
         /// <returns></returns>
         public byte[] Unpack(IPacket packet)
         {
-            using (var memoryStream = new MemoryStream())
+            using (var stream = new MemoryStream())
             {
-                memoryStream.Position = 0;
-                BinaryWriter writer = new BinaryWriter(memoryStream);
-                int msglen = packet.Length;
-                //消息长度
-                writer.Write(msglen);
-                byte cmd = (byte)(packet.Id >> 8);
-                byte act = (byte)(packet.Id & 0x00ff);
-                //消息ID
-                writer.Write(cmd);
-                writer.Write(act);
-                //错误码
-                writer.Write((ushort)0);
-                //消息内容
-                writer.Write(packet.Bytes);
-                writer.Flush();
-                byte[] payload = memoryStream.ToArray();
+                stream.Position = 0;
+                using (var writer = new BinaryWriter(stream))
+                {
+                    int msglen = packet.Head.length;
 
-                packet.Release();
-                packetPool.Push(packet);
-                return payload;
+                    //消息长度
+                    writer.Write(packet.Head.length);
+
+                    //消息ID
+                    writer.Write(packet.Head.cmd);
+                    writer.Write(packet.Head.act);
+
+                    //flag
+                    writer.Write(packet.Head.flags);
+
+                    //BCC校验码
+                    writer.Write(packet.Head.bcc);
+
+                    //消息内容
+                    writer.Write(packet.Data);
+                    writer.Flush();
+                    byte[] result = stream.ToArray();
+
+                    packet.Release();
+                    packetPool.Push(packet);
+                    return result;
+                }
             }
+        }
+
+        /// <summary>
+        /// 将id和data解包成bytes
+        /// </summary>
+        /// <param name="id">包的id</param>
+        /// <param name="data">包的数据</param>
+        /// <returns>解包后的数据</returns>
+        public byte[] Unpack(ushort id, byte[] data, byte bcc)
+        {
+            var packet = packetPool.Pop();
+            var flags = (byte)1;
+            packet.Head = new PacketHead(data.Length, id, flags, bcc);
+            packet.Data = data;
+            return Unpack(packet);
         }
     }
 }

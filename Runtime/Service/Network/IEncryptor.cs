@@ -5,7 +5,6 @@
         /// <summary>
         /// 加密
         /// </summary>
-        /// <param name="seed">加密种子</param>
         /// <param name="buffer">数据缓冲</param>
         /// <param name="offset">偏移</param>
         /// <param name="length">数据长度</param>
@@ -15,7 +14,6 @@
         /// <summary>
         /// 解密
         /// </summary>
-        /// <param name="seed">解密种子</param>
         /// <param name="buffer">数据缓冲</param>
         /// <param name="offset">偏移</param>
         /// <param name="length">数据长度</param>
