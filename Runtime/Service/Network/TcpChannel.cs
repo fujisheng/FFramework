@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Framework.Service.Network
 {
@@ -22,9 +23,11 @@ namespace Framework.Service.Network
         /// </summary>
         const int recvBufferCapacity = sendPacketMaxSize * 8;
 
-        Queue<byte[]> recvQueue;
         readonly RingBuffer<byte> recvBuffer;
-        byte[] buffer;
+        readonly Thread recvThread;
+        bool recvThreadCancle = false;
+        readonly byte[] buffer;
+        IPacket currentPacket;
 
         /// <summary>
         /// 是否已经连接到服务器
@@ -47,14 +50,15 @@ namespace Framework.Service.Network
         /// <summary>
         /// 收到消息的时候调用
         /// </summary>
-        public Action<byte[]> OnReceiveHandler { get; set; }
+        public Action<IPacket> OnReceiveHandler { get; set; }
 
         public TcpChannel()
         {
             socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
             recvBuffer = new RingBuffer<byte>(recvBufferCapacity);
             buffer = new byte[sendPacketMaxSize];
-            recvQueue = new Queue<byte[]>();
+            recvThread = new Thread(ReceiveMessage);
+            recvThread.IsBackground = true;
         }
 
         ~TcpChannel()
@@ -91,7 +95,7 @@ namespace Framework.Service.Network
             try
             {
                 state.EndConnect(result);
-                socket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, OnReceive, socket);
+                recvThread.Start();
                 OnConnectionSuccessfulHandler?.Invoke(result);
             }
             catch (Exception ex)
@@ -101,37 +105,34 @@ namespace Framework.Service.Network
             }
         }
 
-        /// <summary>
-        /// 收到消息的回调
-        /// </summary>
-        /// <param name="result"></param>
-        void OnReceive(IAsyncResult result)
+        void ReceiveMessage()
         {
-            try
+            while (true)
             {
-                var ts = result as Socket;
-                
-                //Array.Clear(buffer, 0, buffer.Length);
+                if(recvThreadCancle == true)
+                {
+                    return;
+                }
 
-                //var bytesReceived = ts.EndReceive(result);
-                //if(bytesReceived <= 0)
-                //{
-                //    Close();
-                //    return;
-                //}
+                try
+                {
+                    int size = socket.Receive(buffer);
+                    if (size <= 0)
+                    {
+                        continue;
+                    }
 
-                UnityEngine.Debug.Log("OnReceive");
-                var data = new byte[sendPacketMaxSize];
-                Array.Copy(buffer, data, buffer.Length);
-                Array.Clear(buffer, 0, buffer.Length);
-                //recvBuffer.Write(data);
-                recvQueue.Enqueue(data);
-                //result.AsyncWaitHandle.Close();
-                socket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, OnReceive, socket);
-            }
-            catch(Exception ex)
-            {
+                    for(int i = 0; i < size; i++)
+                    {
+                        recvBuffer.Write(buffer[i]);
+                    }
 
+                    Array.Clear(buffer, 0, buffer.Length);
+                }
+                catch (Exception ex)
+                {
+                    Close();
+                }
             }
         }
 
@@ -158,17 +159,38 @@ namespace Framework.Service.Network
         /// </summary>
         public void OnUpdate()
         {
-            if(recvQueue.Count > 0)
+            if (recvBuffer.Size > 0)
             {
-                var data = recvQueue.Dequeue();
-                OnReceiveHandler?.Invoke(data);
+                ProcessReceive();
             }
-            //if(recvBuffer.Size > 0)
-            //{
-            //    var recv = new byte[sendPacketMaxSize];
-            //    recvBuffer.Read(sendPacketMaxSize, recv);
-            //    OnReceiveHandler?.Invoke(recv);
-            //}
+        }
+
+        /// <summary>
+        /// 处理接收消息
+        /// </summary>
+        void ProcessReceive()
+        {
+            if(currentPacket == null && recvBuffer.Size > 8)
+            {
+                //先读包头 
+                var headBytes = new byte[8];
+                recvBuffer.Read(8, headBytes);
+                var head = DefaultPackager.ReadHead(headBytes);
+                var packet = new Packet();
+                packet.Head = head;
+                currentPacket = packet;
+            }
+
+            if(currentPacket.Head.length < recvBuffer.Size)
+            {
+                return;
+            }
+
+            var data = new byte[currentPacket.Head.length];
+            recvBuffer.Read(currentPacket.Head.length, data);
+            currentPacket.Body = data;
+            OnReceiveHandler?.Invoke(currentPacket);
+            currentPacket = null;
         }
 
         /// <summary>
@@ -192,6 +214,7 @@ namespace Framework.Service.Network
             recvBuffer.Clear();
             Array.Clear(buffer, 0, buffer.Length);
             socket.Close();
+            recvThreadCancle = true;
         }
     }
 }

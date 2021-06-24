@@ -3,7 +3,7 @@
     public interface IPacket
     {
         PacketHead Head { get; set; }
-        byte[] Data { get; set; }
+        byte[] Body { get; set; }
         void Release();
     }
 

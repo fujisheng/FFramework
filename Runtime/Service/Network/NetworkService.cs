@@ -143,17 +143,12 @@ namespace Framework.Service.Network
         /// 当收到消息的时候
         /// </summary>
         /// <param name="bytes">收到的bytes</param>
-        void OnReceive(byte[] bytes)
+        void OnReceive(IPacket packet)
         {
-            //for(int i = 0; i< 100; i++)
-            //{
-            //    UnityEngine.Debug.Log(bytes[i]);
-            //}
-            
-            IPacket packet = packager.Pack(bytes);
-            var decryptBytes = encryptor == null ? packet.Data : encryptor.Decrypt(packet.Data, 0, packet.Data.Length);
-            packet.Data = decryptBytes;
-            UnityEngine.Debug.Log($"receiveBytes:{packet.Data.Length}");
+            //IPacket packet = packager.Pack(bytes);
+            var decryptBytes = encryptor == null ? packet.Body : encryptor.Decrypt(packet.Body, 0, packet.Body.Length);
+            packet.Body = decryptBytes;
+            UnityEngine.Debug.Log($"receiveBytes:{packet.Body.Length}");
             OnReceiveHandler?.Invoke(packet);
         }
 

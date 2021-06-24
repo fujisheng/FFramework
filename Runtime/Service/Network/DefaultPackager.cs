@@ -18,6 +18,33 @@ namespace Framework.Service.Network
             this.packetPool = packetPool;
         }
 
+        public static PacketHead ReadHead(byte[] bytes)
+        {
+            using (var stream = new MemoryStream())
+            {
+                using (var reader = new BinaryReader(stream))
+                {
+                    stream.Seek(0, SeekOrigin.End);
+                    stream.Write(bytes, 0, bytes.Length);
+                    stream.Seek(0, SeekOrigin.Begin);
+
+                    //消息长度
+                    int length = reader.ReadInt32();
+                    //cmd
+                    byte cmd = reader.ReadByte();
+                    //act
+                    byte act = reader.ReadByte();
+                    //flags
+                    byte flags = reader.ReadByte();
+                    //bcc
+                    byte bcc = reader.ReadByte();
+                    ushort msgId = (ushort)((cmd << 8) | act);
+
+                    return new PacketHead(msgId, cmd, act, flags, bcc);
+                }
+            }
+        }
+
         /// <summary>
         /// 将消息打包成packet
         /// </summary>
@@ -53,7 +80,7 @@ namespace Framework.Service.Network
                     IPacket packet = packetPool.Pop();
 
                     packet.Head = new PacketHead(msgId, cmd, act, flags, bcc);
-                    packet.Data = data;
+                    packet.Body = data;
                     reader.Close();
                     return packet;
                 }
@@ -88,7 +115,7 @@ namespace Framework.Service.Network
                     writer.Write(packet.Head.bcc);
 
                     //消息内容
-                    writer.Write(packet.Data);
+                    writer.Write(packet.Body);
                     writer.Flush();
                     byte[] result = stream.ToArray();
 
@@ -110,7 +137,7 @@ namespace Framework.Service.Network
             var packet = packetPool.Pop();
             var flags = (byte)1;
             packet.Head = new PacketHead(data.Length, id, flags, bcc);
-            packet.Data = data;
+            packet.Body = data;
             return Unpack(packet);
         }
     }
