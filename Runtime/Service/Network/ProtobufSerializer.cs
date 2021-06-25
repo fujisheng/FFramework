@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Framework.Service.Network
 {
-    public class ProtobufSerializer : ISerializer
+    public class ProtobufSerializer : INetworkSerializeHelper
     {
         public byte[] Serialize<T>(T data)
         {

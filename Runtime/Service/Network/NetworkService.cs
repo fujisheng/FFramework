@@ -1,33 +1,31 @@
-﻿using System;
+﻿using FInject;
+using System;
 
 namespace Framework.Service.Network
 {
     internal sealed class NetworkService : Service, INetworkService
     {
         INetworkChannel channel;
-        IPackager packager;
-        IEncryptor encryptor;
-        ISerializer serializer;
+
+        //必须的Helper
+        INetworkPackageHelper packageHelper;
+        INetworkSerializeHelper serializeHelper;
+        INetworkBCCHelper bccHelper;
+
+        //可选的Helper
+        INetworkEncryptHelper encryptHelper;
+        INetworkCompressHelper compressHelper;
 
         public Action<IAsyncResult> OnConnectionSuccessfulHandler { get; set; }
         public Action<string> OnConnectionFailedHandler { get; set; }
         public Action OnClosedHandler { get; set; }
-        public Action<IPacket> OnReceiveHandler { get; set; }
-
-
-        /// <summary>
-        /// 设置消息打包器
-        /// </summary>
-        /// <param name="converter"></param>
-        public void SetPackager(IPackager packager)
-        {
-            this.packager = packager;
-        }
+        public Action<INetworkPacket> OnReceiveHandler { get; set; }
 
         /// <summary>
         /// 设置网络频道
         /// </summary>
         /// <param name="channel"></param>
+        [Inject]
         public void SetNetworkChannel(INetworkChannel channel)
         {
             this.channel = channel;
@@ -40,21 +38,53 @@ namespace Framework.Service.Network
         }
 
         /// <summary>
+        /// 设置消息打包器
+        /// </summary>
+        /// <param name="converter"></param>
+        [Inject]
+        public void SetNetworkPackageHelper(INetworkPackageHelper packageHelper)
+        {
+            this.packageHelper = packageHelper;
+        }
+
+        /// <summary>
         /// 设置加密器
         /// </summary>
-        /// <param name="encryptor"></param>
-        public void SetEncryptor(IEncryptor encryptor)
+        /// <param name="encryptHelper"></param>
+        [Inject]
+        public void SetNetworkEncryptHelper(INetworkEncryptHelper encryptHelper)
         {
-            this.encryptor = encryptor;
+            this.encryptHelper = encryptHelper;
         }
 
         /// <summary>
         /// 设置序列化器
         /// </summary>
-        /// <param name="serializer"></param>
-        public void SetSerializer(ISerializer serializer)
+        /// <param name="serializeHelper"></param>
+        [Inject]
+        public void SetNetworkSerializeHelper(INetworkSerializeHelper serializeHelper)
         {
-            this.serializer = serializer;
+            this.serializeHelper = serializeHelper;
+        }
+
+        /// <summary>
+        /// 设置bcc校验方法
+        /// </summary>
+        /// <param name="bccHelper"></param>
+        [Inject]
+        public void SetNetworkBCCHelper(INetworkBCCHelper bccHelper)
+        {
+            this.bccHelper = bccHelper;
+        }
+
+        /// <summary>
+        /// 设置压缩方法
+        /// </summary>
+        /// <param name="compressHelper"></param>
+        [Inject]
+        public void SetNetworkCompressHelper(INetworkCompressHelper compressHelper)
+        {
+            this.compressHelper = compressHelper;
         }
 
         /// <summary>
@@ -64,67 +94,112 @@ namespace Framework.Service.Network
         /// <param name="port"></param>
         public void Connect(string ip, int port)
         {
-            if(packager == null)
-            {
-                throw new Exception("Packager is null, you need set packager first");
-            }
-
             if(channel == null)
             {
-                throw new Exception("Packager is null, you need set network channel first");
+                throw new Exception("Channel is null, you need call SetNetworkChannel first");
+            }
+
+            if (bccHelper == null)
+            {
+                throw new Exception("NetworkBCCHelper is null, you need call SetNetworkBCCHelper first");
+            }
+
+            if (packageHelper == null)
+            {
+                throw new Exception("NetworkPackageHelper is null, you need call SetNetworkPackageHelper first");
+            }
+
+            if(serializeHelper == null)
+            {
+                throw new Exception("NetworkSerializeHelper is null, you need call SetNetworkSerializeHelper first");
             }
 
             channel.Connect(ip, port);
         }
 
+        /// <summary>
+        /// 连接成功
+        /// </summary>
+        /// <param name="result"></param>
         void OnConnectionSuccessful(IAsyncResult result)
         {
             UnityEngine.Debug.Log("Connected");
         }
 
+        /// <summary>
+        /// 连接失败
+        /// </summary>
+        /// <param name="ex"></param>
         void OnConnectionFailed(string ex)
         {
             UnityEngine.Debug.LogError($"Connect Failed:{ex}");
         }
 
         /// <summary>
-        /// 发送一个消息
+        /// 发送一个包
         /// </summary>
-        /// <param name="packet"></param>
-        public void Send(IPacket packet)
+        /// <param name="packet">包</param>
+        public void Send(INetworkPacket packet)
         {
-            if(channel == null || !channel.IsConnected)
+            if (channel == null || !channel.IsConnected)
             {
                 UnityEngine.Debug.LogError("Connector为空 或者没有连接到服务器！！！");
                 return;
             }
 
-            byte[] bytes = packager.Unpack(packet);
-            Send(bytes);
+            byte[] bytes = packageHelper.Unpack(packet);
+            InternalSend(bytes);
         }
 
         /// <summary>
-        /// 通过一个数据类型发送一个数据
+        /// 发送一个对象
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="id"></param>
-        /// <param name="data"></param>
-        public void Send<T>(ushort id, T data)
+        /// <typeparam name="T">对象类型</typeparam>
+        /// <param name="id">消息id</param>
+        /// <param name="data">数据</param>
+        /// <param name="flag">标记</param>
+        public void Send<T>(ushort id, T data, PacketFlag flag = PacketFlag.Encrypt)
         {
-            var bytes = serializer.Serialize<T>(data);
-            var bcc = PacketHead.CountBCC(bytes, 0, bytes.Length);
-            //UnityEngine.Debug.Log($"sendMsg bcc:{bcc}");
-            var encryptBytes = encryptor == null ? bytes : encryptor.Encrypt(bytes, 0, bytes.Length);
-            bytes = packager.Unpack(id, encryptBytes, bcc);
-            Send(bytes);
+            var bytes = serializeHelper.Serialize<T>(data);
+            Send(id, bytes, flag);
+        }
+
+        /// <summary>
+        /// 发送一个数据bytes
+        /// </summary>
+        /// <param name="id">消息id</param>
+        /// <param name="bytes">bytes</param>
+        /// <param name="flag">标记</param>
+        public void Send(ushort id, byte[] bytes, PacketFlag flag = PacketFlag.Encrypt)
+        {
+            var bcc = bccHelper.Calculation(bytes, 0, bytes.Length);
+            var resultBytes = bytes;
+            if (flag.HasFlag(PacketFlag.Encrypt))
+            {
+                if (encryptHelper == null)
+                {
+                    throw new Exception("Network Packet has Encrypt flag, but NetworkEncryptHelper is null, please call SetNetworkEncyptHelper first");
+                }
+
+                resultBytes = encryptHelper.Encrypt(bytes, 0, bytes.Length);
+            }
+
+            bytes = packageHelper.Unpack(id, resultBytes, bcc);
+            InternalSend(bytes);
         }
 
         /// <summary>
         /// 直接发送一个byte数组
         /// </summary>
-        /// <param name="bytes"></param>
-        public void Send(byte[] bytes)
+        /// <param name="bytes">bytes</param>
+        void InternalSend(byte[] bytes)
         {
+            if (!channel.IsConnected)
+            {
+                UnityEngine.Debug.LogFormat("还没有连接到服务器");
+                return;
+            }
+
             if (bytes == null || bytes.Length == 0)
             {
                 UnityEngine.Debug.LogWarning("要发送的消息为空!!!");
@@ -134,21 +209,58 @@ namespace Framework.Service.Network
             channel.Send(bytes);
         }
 
-        public void AddListener<T>(int id, Action<object> listener)
-        {
-
-        }
-
         /// <summary>
         /// 当收到消息的时候
         /// </summary>
-        /// <param name="bytes">收到的bytes</param>
-        void OnReceive(IPacket packet)
+        /// <param name="packet">收到的包</param>
+        void OnReceive(INetworkPacket packet)
         {
-            //IPacket packet = packager.Pack(bytes);
-            var decryptBytes = encryptor == null ? packet.Body : encryptor.Decrypt(packet.Body, 0, packet.Body.Length);
-            packet.Body = decryptBytes;
-            UnityEngine.Debug.Log($"receiveBytes:{packet.Body.Length}");
+            var flags = (PacketFlag)packet.Head.flags;
+            var resultBytes = packet.Data;
+
+            //如有有加密标记 则执行解密行为
+            if (flags.HasFlag(PacketFlag.Encrypt))
+            {
+                if(encryptHelper == null)
+                {
+                    throw new Exception("Network Packet has Encrypt flag, but NetworkEncryptHelper is null, please call SetNetworkEncyptHelper first");
+                }
+
+                resultBytes = encryptHelper.Decrypt(resultBytes, 0, resultBytes.Length);
+                var checkResult = bccHelper.Check(resultBytes, 0, resultBytes.Length, packet.Head.bcc);
+                if(checkResult == false)
+                {
+                    UnityEngine.Debug.LogError("Network bcc校验失败");
+                    Close();
+                    return;
+                }
+            }
+
+            //如果有压缩标记 则执行解压缩
+            if (flags.HasFlag(PacketFlag.Compress))
+            {
+                if(compressHelper == null)
+                {
+                    throw new Exception("Network Packet has Compress flag, but NetworkCompressHelper is null, please call SetNetworkCompressHelper first");
+                }
+
+                var (bytes, error) = compressHelper.Decompress(resultBytes);
+                var hasError = !string.IsNullOrEmpty(error);
+                resultBytes = hasError ? resultBytes : bytes;
+
+                if (hasError)
+                {
+                    UnityEngine.Debug.LogError($"Network 解压缩失败:{error}");
+                }
+            }
+
+            //如果有不解析标记 则直接返回
+            if (flags.HasFlag(PacketFlag.NoParse))
+            {
+                return;
+            }
+            
+            packet.WriteData(resultBytes);
             OnReceiveHandler?.Invoke(packet);
         }
 

@@ -1,17 +1,17 @@
-﻿namespace Framework.Service.Network
-{
-    public interface IPacket
-    {
-        PacketHead Head { get; set; }
-        byte[] Body { get; set; }
-        void Release();
-    }
+﻿using System.IO;
 
+namespace Framework.Service.Network
+{
     /// <summary>
     /// 消息头
     /// </summary>
     public struct PacketHead
     {
+        /// <summary>
+        /// Head的bytes长度
+        /// </summary>
+        public static readonly int HeadLength = 8;
+
         /// <summary>
         /// 长度
         /// </summary>
@@ -44,7 +44,7 @@
         {
             get
             {
-                if(cmd == 0 || act == 0)
+                if (cmd == 0 || act == 0)
                 {
                     throw new System.Exception("cmd or act is empty please init this head first");
                 }
@@ -87,20 +87,43 @@
         }
 
         /// <summary>
-        /// 计算bcc校验码
+        /// 构造消息头
         /// </summary>
-        /// <param name="buffer">数据</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="length">数据长度</param>
-        /// <returns></returns>
-        public static byte CountBCC(byte[] buffer, int offset, int length)
+        /// <param name="bytes">bytes</param>
+        public PacketHead(byte[] bytes)
         {
-            byte value = 0x00;
-            for (int i = offset; i < offset + length; i++)
+            if(bytes.Length < HeadLength)
             {
-                value ^= buffer[i];
+                throw new System.Exception("PacketHead Length must >= 8");
             }
-            return value;
+
+            using (var stream = new MemoryStream())
+            {
+                using (var reader = new BinaryReader(stream))
+                {
+                    stream.Seek(0, SeekOrigin.End);
+                    stream.Write(bytes, 0, bytes.Length);
+                    stream.Seek(0, SeekOrigin.Begin);
+
+                    //消息长度
+                    int length = reader.ReadInt32();
+                    //cmd
+                    byte cmd = reader.ReadByte();
+                    //act
+                    byte act = reader.ReadByte();
+                    //flags
+                    byte flags = reader.ReadByte();
+                    //bcc
+                    byte bcc = reader.ReadByte();
+                    ushort msgId = (ushort)((cmd << 8) | act);
+
+                    this.length = length;
+                    this.cmd = cmd;
+                    this.act = act;
+                    this.flags = flags;
+                    this.bcc = bcc;
+                }
+            }
         }
 
         public override string ToString()

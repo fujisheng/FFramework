@@ -2,7 +2,7 @@
 
 namespace Framework.Service.Network
 {
-    public class DefaultEncryptor : IEncryptor
+    public class DefaultNetworkEncryptHelper : INetworkEncryptHelper
     {
         const uint encryptA = 214003;
         const uint encryptB = 2531012;
@@ -15,7 +15,7 @@ namespace Framework.Service.Network
         /// </summary>
         /// <param name="encryptSeed">加密种子</param>
         /// <param name="decryptSeed">解密种子</param>
-        public DefaultEncryptor(uint encryptSeed, uint decryptSeed)
+        public DefaultNetworkEncryptHelper(uint encryptSeed, uint decryptSeed)
         {
             this.encryptSeed = encryptSeed;
             this.decryptSeed = decryptSeed;
@@ -30,7 +30,6 @@ namespace Framework.Service.Network
         /// <returns>加密后的数据</returns>
         public byte[] Encrypt(byte[] buffer, int offset, int length)
         {
-            //UnityEngine.Debug.Log($"加密前的加密种子:{encryptSeed}");
             //先计算新的加密种子
             encryptSeed = encryptSeed * encryptA + encryptB;
 
@@ -52,7 +51,6 @@ namespace Framework.Service.Network
                 buffer[i] = (byte)c;
             }
 
-            //UnityEngine.Debug.Log($"发送了消息之后 的加密种子:{encryptSeed}");
             return buffer;
         }
 

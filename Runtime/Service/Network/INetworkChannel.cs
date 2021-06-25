@@ -7,7 +7,7 @@ namespace Framework.Service.Network
         bool IsConnected { get; }
         Action<IAsyncResult> OnConnectionSuccessfulHandler { get; set; }
         Action<string> OnConnectionFailedHandler { get; set; }
-        Action<IPacket> OnReceiveHandler { get; set; }
+        Action<INetworkPacket> OnReceiveHandler { get; set; }
 
         void OnUpdate();
         void Connect(string ip, int port);

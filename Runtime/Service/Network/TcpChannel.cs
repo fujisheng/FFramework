@@ -1,11 +1,8 @@
 ﻿using Framework.Collections;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Framework.Service.Network
 {
@@ -27,7 +24,7 @@ namespace Framework.Service.Network
         readonly Thread recvThread;
         bool recvThreadCancle = false;
         readonly byte[] buffer;
-        IPacket currentPacket;
+        INetworkPacket currentPacket;
 
         /// <summary>
         /// 是否已经连接到服务器
@@ -50,15 +47,17 @@ namespace Framework.Service.Network
         /// <summary>
         /// 收到消息的时候调用
         /// </summary>
-        public Action<IPacket> OnReceiveHandler { get; set; }
+        public Action<INetworkPacket> OnReceiveHandler { get; set; }
 
         public TcpChannel()
         {
             socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
             recvBuffer = new RingBuffer<byte>(recvBufferCapacity);
             buffer = new byte[sendPacketMaxSize];
-            recvThread = new Thread(ReceiveMessage);
-            recvThread.IsBackground = true;
+            recvThread = new Thread(ReceiveMessage)
+            {
+                IsBackground = true
+            };
         }
 
         ~TcpChannel()
@@ -105,6 +104,9 @@ namespace Framework.Service.Network
             }
         }
 
+        /// <summary>
+        /// 接收数据
+        /// </summary>
         void ReceiveMessage()
         {
             while (true)
@@ -117,19 +119,16 @@ namespace Framework.Service.Network
                 try
                 {
                     int size = socket.Receive(buffer);
+                    
                     if (size <= 0)
                     {
                         continue;
                     }
 
-                    for(int i = 0; i < size; i++)
-                    {
-                        recvBuffer.Write(buffer[i]);
-                    }
-
+                    recvBuffer.Write(buffer, 0, size);
                     Array.Clear(buffer, 0, buffer.Length);
                 }
-                catch (Exception ex)
+                catch
                 {
                     Close();
                 }
@@ -170,25 +169,25 @@ namespace Framework.Service.Network
         /// </summary>
         void ProcessReceive()
         {
-            if(currentPacket == null && recvBuffer.Size > 8)
+            if(currentPacket == null && recvBuffer.Size >= 8)
             {
-                //先读包头 
-                var headBytes = new byte[8];
-                recvBuffer.Read(8, headBytes);
-                var head = DefaultPackager.ReadHead(headBytes);
-                var packet = new Packet();
-                packet.Head = head;
+                //先读包头
+                var headBytes = new byte[PacketHead.HeadLength];
+                recvBuffer.Read(PacketHead.HeadLength, headBytes);
+                var head = new PacketHead(headBytes);
+                var packet = new Packet(head);
                 currentPacket = packet;
             }
 
-            if(currentPacket.Head.length < recvBuffer.Size)
+            //判断当前buffer中的数据长度够不够包头的长度 不够就等待 够就读出来
+            if(currentPacket.Head.length > recvBuffer.Size)
             {
                 return;
             }
 
             var data = new byte[currentPacket.Head.length];
             recvBuffer.Read(currentPacket.Head.length, data);
-            currentPacket.Body = data;
+            currentPacket.WriteData(data);
             OnReceiveHandler?.Invoke(currentPacket);
             currentPacket = null;
         }

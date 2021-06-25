@@ -1,6 +1,6 @@
 ﻿namespace Framework.Service.Network
 {
-    public interface IEncryptor
+    public interface INetworkEncryptHelper
     {
         /// <summary>
         /// 加密

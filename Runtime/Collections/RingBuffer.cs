@@ -74,7 +74,18 @@ namespace Framework.Collections
         /// <param name="datas"></param>
         public void Write(T[] datas)
         {
-            for (int i = 0; i < datas.Length; i++)
+            Write(datas, 0, datas.Length);
+        }
+
+        /// <summary>
+        /// 写入一串数据
+        /// </summary>
+        /// <param name="datas"></param>
+        /// <param name="offset"></param>
+        /// <param name="length"></param>
+        public void Write(T[] datas, int offset, int length)
+        {
+            for(int i = offset; i < length; i++)
             {
                 Write(datas[i]);
             }
