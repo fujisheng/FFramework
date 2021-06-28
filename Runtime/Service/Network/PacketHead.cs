@@ -44,11 +44,6 @@ namespace Framework.Service.Network
         {
             get
             {
-                if (cmd == 0 || act == 0)
-                {
-                    throw new System.Exception("cmd or act is empty please init this head first");
-                }
-
                 return (ushort)((cmd << 8) | act);
             }
         }
@@ -124,6 +119,15 @@ namespace Framework.Service.Network
                     this.bcc = bcc;
                 }
             }
+        }
+
+        /// <summary>
+        /// 判断是否为空
+        /// </summary>
+        /// <returns>是否为空</returns>
+        public bool IsEmpty()
+        {
+            return length == default && cmd == default && act == default && flags == default && bcc == default;
         }
 
         public override string ToString()

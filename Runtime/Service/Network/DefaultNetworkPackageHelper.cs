@@ -87,10 +87,9 @@ namespace Framework.Service.Network
         /// <param name="id">包的id</param>
         /// <param name="data">包的数据</param>
         /// <returns>解包后的数据</returns>
-        public byte[] Unpack(ushort id, byte[] data, byte bcc)
+        public byte[] Unpack(ushort id, byte flags, byte bcc, byte[] data)
         {
             var packet = packetPool.Pop();
-            var flags = (byte)1;
             packet.WriteHead(new PacketHead(data.Length, id, flags, bcc));
             packet.WriteData(data);
             return Unpack(packet);

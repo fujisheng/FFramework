@@ -9,10 +9,10 @@ namespace Framework.Service.Network
 
         //必须的Helper
         INetworkPackageHelper packageHelper;
-        INetworkSerializeHelper serializeHelper;
         INetworkBCCHelper bccHelper;
 
         //可选的Helper
+        INetworkSerializeHelper serializeHelper;
         INetworkEncryptHelper encryptHelper;
         INetworkCompressHelper compressHelper;
 
@@ -28,12 +28,16 @@ namespace Framework.Service.Network
         [Inject]
         public void SetNetworkChannel(INetworkChannel channel)
         {
+            if(this.channel != null)
+            {
+                this.channel.OnConnectionSuccessfulHandler -= OnConnectionSuccessful;
+                this.channel.OnConnectionFailedHandler -= OnConnectionFailed;
+                this.channel.OnReceiveHandler -= OnReceive;
+            }
+
             this.channel = channel;
-            this.channel.OnConnectionSuccessfulHandler += OnConnectionSuccessfulHandler;
-            this.channel.OnConnectionFailedHandler += OnConnectionFailedHandler;
             this.channel.OnConnectionSuccessfulHandler += OnConnectionSuccessful;
             this.channel.OnConnectionFailedHandler += OnConnectionFailed;
-
             this.channel.OnReceiveHandler += OnReceive;
         }
 
@@ -109,12 +113,8 @@ namespace Framework.Service.Network
                 throw new Exception("NetworkPackageHelper is null, you need call SetNetworkPackageHelper first");
             }
 
-            if(serializeHelper == null)
-            {
-                throw new Exception("NetworkSerializeHelper is null, you need call SetNetworkSerializeHelper first");
-            }
-
             channel.Connect(ip, port);
+            UnityEngine.Debug.Log($"Connect Server {ip}:{port}");
         }
 
         /// <summary>
@@ -124,6 +124,7 @@ namespace Framework.Service.Network
         void OnConnectionSuccessful(IAsyncResult result)
         {
             UnityEngine.Debug.Log("Connected");
+            OnConnectionSuccessfulHandler?.Invoke(result);
         }
 
         /// <summary>
@@ -133,6 +134,7 @@ namespace Framework.Service.Network
         void OnConnectionFailed(string ex)
         {
             UnityEngine.Debug.LogError($"Connect Failed:{ex}");
+            OnConnectionFailedHandler?.Invoke(ex);
         }
 
         /// <summary>
@@ -160,6 +162,11 @@ namespace Framework.Service.Network
         /// <param name="flag">标记</param>
         public void Send<T>(ushort id, T data, PacketFlag flag = PacketFlag.Encrypt)
         {
+            if (serializeHelper == null)
+            {
+                throw new Exception("NetworkSerializeHelper is null, you need call SetNetworkSerializeHelper first");
+            }
+
             var bytes = serializeHelper.Serialize<T>(data);
             Send(id, bytes, flag);
         }
@@ -168,7 +175,7 @@ namespace Framework.Service.Network
         /// 发送一个数据bytes
         /// </summary>
         /// <param name="id">消息id</param>
-        /// <param name="bytes">bytes</param>
+        /// <param name="bytes">未处理前的数据</param>
         /// <param name="flag">标记</param>
         public void Send(ushort id, byte[] bytes, PacketFlag flag = PacketFlag.Encrypt)
         {
@@ -184,7 +191,7 @@ namespace Framework.Service.Network
                 resultBytes = encryptHelper.Encrypt(bytes, 0, bytes.Length);
             }
 
-            bytes = packageHelper.Unpack(id, resultBytes, bcc);
+            bytes = packageHelper.Unpack(id, (byte)flag, bcc, resultBytes);
             InternalSend(bytes);
         }
 

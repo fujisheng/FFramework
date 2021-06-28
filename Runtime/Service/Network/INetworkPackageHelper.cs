@@ -3,7 +3,7 @@
     public interface INetworkPackageHelper
     {
         byte[] Unpack(INetworkPacket packet);
-        byte[] Unpack(ushort id, byte[] data, byte bcc);
+        byte[] Unpack(ushort id, byte flags, byte bcc, byte[] data);
         INetworkPacket Pack(byte[] bytes);
     }
 }
