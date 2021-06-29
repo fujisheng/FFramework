@@ -90,7 +90,7 @@ namespace Framework.Service.Network
         /// <param name="id">消息id</param>
         /// <param name="data">消息数据类实例</param>
         /// <param name="flag">标记</param>
-        void Send<T>(ushort id, T data, PacketFlag flag = PacketFlag.Encrypt);
+        void Send<T>(ushort id, T data, PacketFlag flag = PacketFlag.Encrypt) where T : class;
 
         /// <summary>
         /// 关闭连接

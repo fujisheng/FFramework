@@ -145,7 +145,7 @@ namespace Framework.Service.Network
         {
             if (channel == null || !channel.IsConnected)
             {
-                UnityEngine.Debug.LogError("Connector为空 或者没有连接到服务器！！！");
+                UnityEngine.Debug.LogError("Network Send Failed : Channel is null or not connect");
                 return;
             }
 
@@ -160,8 +160,14 @@ namespace Framework.Service.Network
         /// <param name="id">消息id</param>
         /// <param name="data">数据</param>
         /// <param name="flag">标记</param>
-        public void Send<T>(ushort id, T data, PacketFlag flag = PacketFlag.Encrypt)
+        public void Send<T>(ushort id, T data, PacketFlag flag = PacketFlag.Encrypt) where T : class
         {
+            if (channel == null || !channel.IsConnected)
+            {
+                UnityEngine.Debug.LogError("Network Send Failed : Channel is null or not connect");
+                return;
+            }
+
             if (serializeHelper == null)
             {
                 throw new Exception("NetworkSerializeHelper is null, you need call SetNetworkSerializeHelper first");
@@ -179,6 +185,12 @@ namespace Framework.Service.Network
         /// <param name="flag">标记</param>
         public void Send(ushort id, byte[] bytes, PacketFlag flag = PacketFlag.Encrypt)
         {
+            if (channel == null || !channel.IsConnected)
+            {
+                UnityEngine.Debug.LogError("Network Send Failed : Channel is null or not connect");
+                return;
+            }
+
             var bcc = bccHelper.Calculation(bytes, 0, bytes.Length);
             var resultBytes = bytes;
             if (flag.HasFlag(PacketFlag.Encrypt))
@@ -201,15 +213,9 @@ namespace Framework.Service.Network
         /// <param name="bytes">bytes</param>
         void InternalSend(byte[] bytes)
         {
-            if (!channel.IsConnected)
-            {
-                UnityEngine.Debug.LogFormat("还没有连接到服务器");
-                return;
-            }
-
             if (bytes == null || bytes.Length == 0)
             {
-                UnityEngine.Debug.LogWarning("要发送的消息为空!!!");
+                UnityEngine.Debug.LogWarning("Network Send Failed : msg is empty");
                 return;
             }
 
@@ -237,7 +243,7 @@ namespace Framework.Service.Network
                 var checkResult = bccHelper.Check(resultBytes, 0, resultBytes.Length, packet.Head.bcc);
                 if(checkResult == false)
                 {
-                    UnityEngine.Debug.LogError("Network bcc校验失败");
+                    UnityEngine.Debug.LogError("Network bcc check failed, close connect");
                     Close();
                     return;
                 }
@@ -257,7 +263,7 @@ namespace Framework.Service.Network
 
                 if (hasError)
                 {
-                    UnityEngine.Debug.LogError($"Network 解压缩失败:{error}");
+                    UnityEngine.Debug.LogError($"Network decompress failed : {error}");
                 }
             }
 
