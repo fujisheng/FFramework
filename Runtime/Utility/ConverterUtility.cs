@@ -833,6 +833,19 @@ namespace Framework
 
                 return encoding.GetString(value, startIndex, length);
             }
+
+            /// <summary>
+            /// 将4位比特转换成int32
+            /// </summary>
+            /// <param name="byte1">byte1</param>
+            /// <param name="byte2">byte2</param>
+            /// <param name="byte3">byte3</param>
+            /// <param name="byte4">byte4</param>
+            /// <returns></returns>
+            public static int GetInt32(byte byte1, byte byte2, byte byte3, byte byte4)
+            {
+                return (int)(byte1 & 0xff) | (byte2 << 8 & 0xff00) | (byte3 << 16 & 0xff0000) | (int)(byte4 << 24 & 0xff000000);
+            }
         }
     }
 }

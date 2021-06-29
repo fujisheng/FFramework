@@ -20,7 +20,7 @@ namespace Framework.Service.Network
         /// </summary>
         const int recvBufferCapacity = sendPacketMaxSize * 8;
 
-        readonly RingBuffer<byte> recvBuffer;
+        readonly BytesBuffer recvBuffer;
         readonly Thread recvThread;
         bool recvThreadCancle = false;
         readonly byte[] buffer;
@@ -52,7 +52,7 @@ namespace Framework.Service.Network
         public TcpChannel()
         {
             socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-            recvBuffer = new RingBuffer<byte>(recvBufferCapacity);
+            recvBuffer = new BytesBuffer(recvBufferCapacity);
             buffer = new byte[sendPacketMaxSize];
             recvThread = new Thread(ReceiveMessage)
             {
@@ -119,14 +119,14 @@ namespace Framework.Service.Network
                 try
                 {
                     int size = socket.Receive(buffer);
-                    
+
                     if (size <= 0)
                     {
                         continue;
                     }
 
                     recvBuffer.Write(buffer, 0, size);
-                    Array.Clear(buffer, 0, buffer.Length);
+                    Array.Clear(buffer, 0, size);
                 }
                 catch
                 {
@@ -169,14 +169,17 @@ namespace Framework.Service.Network
         /// </summary>
         void ProcessReceive()
         {
-            if(currentPacket == null && recvBuffer.Size >= 8)
+            if(currentPacket == null && recvBuffer.Size >= PacketHead.HeadLength)
             {
-                //先读包头
-                var headBytes = new byte[PacketHead.HeadLength];
-                recvBuffer.Read(PacketHead.HeadLength, headBytes);
-                var head = new PacketHead(headBytes);
-                var packet = new Packet(head);
-                currentPacket = packet;
+                unsafe
+                {
+                    //先读包头
+                    var headBytes = stackalloc byte[PacketHead.HeadLength];
+                    recvBuffer.Read(headBytes, PacketHead.HeadLength);
+                    var head = new PacketHead(headBytes, PacketHead.HeadLength);
+                    var packet = new Packet(head);
+                    currentPacket = packet;
+                }
             }
 
             //判断当前buffer中的数据长度够不够包头的长度 不够就等待 够就读出来
@@ -185,8 +188,9 @@ namespace Framework.Service.Network
                 return;
             }
 
+            //TODO 这个地方可以改成pool形式
             var data = new byte[currentPacket.Head.length];
-            recvBuffer.Read(currentPacket.Head.length, data);
+            recvBuffer.Read(data, currentPacket.Head.length);
             currentPacket.WriteData(data);
             OnReceiveHandler?.Invoke(currentPacket);
             currentPacket = null;

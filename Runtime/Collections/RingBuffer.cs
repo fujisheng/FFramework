@@ -96,7 +96,7 @@ namespace Framework.Collections
         /// </summary>
         /// <param name="length"></param>
         /// <param name="buffer"></param>
-        public void Read(int length, T[] buffer)
+        public void Read(T[] buffer, int length)
         {
             var l = Math.Min(length, buffer.Length);
             for(int i = 0; i < l; i++)

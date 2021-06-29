@@ -1,4 +1,4 @@
-﻿using System.IO;
+﻿using System;
 
 namespace Framework.Service.Network
 {
@@ -89,36 +89,55 @@ namespace Framework.Service.Network
         {
             if(bytes.Length < HeadLength)
             {
-                throw new System.Exception("PacketHead Length must >= 8");
+                throw new Exception("PacketHead Length must >= 8");
             }
 
-            using (var stream = new MemoryStream())
+            //消息长度
+            int length = Utility.Converter.GetInt32(bytes);
+            //cmd
+            byte cmd = bytes[4];
+            //act
+            byte act = bytes[5];
+            //flags
+            byte flags = bytes[6];
+            //bcc
+            byte bcc = bytes[7];
+
+            this.length = length;
+            this.cmd = cmd;
+            this.act = act;
+            this.flags = flags;
+            this.bcc = bcc;
+        }
+
+        /// <summary>
+        /// 构造消息头
+        /// </summary>
+        /// <param name="bytes">bytes</param>
+        /// <param name="lenght">消息头长度</param>
+        public unsafe PacketHead(byte* bytes, int lenght)
+        {
+            if (lenght < HeadLength)
             {
-                using (var reader = new BinaryReader(stream))
-                {
-                    stream.Seek(0, SeekOrigin.End);
-                    stream.Write(bytes, 0, bytes.Length);
-                    stream.Seek(0, SeekOrigin.Begin);
-
-                    //消息长度
-                    int length = reader.ReadInt32();
-                    //cmd
-                    byte cmd = reader.ReadByte();
-                    //act
-                    byte act = reader.ReadByte();
-                    //flags
-                    byte flags = reader.ReadByte();
-                    //bcc
-                    byte bcc = reader.ReadByte();
-                    ushort msgId = (ushort)((cmd << 8) | act);
-
-                    this.length = length;
-                    this.cmd = cmd;
-                    this.act = act;
-                    this.flags = flags;
-                    this.bcc = bcc;
-                }
+                throw new Exception("PacketHead Length must >= 8");
             }
+
+            //消息长度
+            int length = Utility.Converter.GetInt32(bytes[0], bytes[1], bytes[2], bytes[3]);
+            //cmd
+            byte cmd = bytes[4];
+            //act
+            byte act = bytes[5];
+            //flags
+            byte flags = bytes[6];
+            //bcc
+            byte bcc = bytes[7];
+
+            this.length = length;
+            this.cmd = cmd;
+            this.act = act;
+            this.flags = flags;
+            this.bcc = bcc;
         }
 
         /// <summary>
