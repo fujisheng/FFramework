@@ -4,6 +4,21 @@
 //using System.Threading.Tasks;
 //using UnityEngine;
 
+using System.Collections.Generic;
+
+namespace Framework.Service.Config
+{
+    public interface IConfigRow
+    {
+        int GetId();
+    }
+
+    public interface IConfig
+    {
+        List<IConfigRow> GetRows();
+    }
+}
+
 //namespace Framework.Module
 //{
 //    public class ConfigManager : ModuleBase
