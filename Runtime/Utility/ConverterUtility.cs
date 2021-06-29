@@ -841,10 +841,73 @@ namespace Framework
             /// <param name="byte2">byte2</param>
             /// <param name="byte3">byte3</param>
             /// <param name="byte4">byte4</param>
+            /// <param name="reverse">是否反转</param>
             /// <returns></returns>
-            public static int GetInt32(byte byte1, byte byte2, byte byte3, byte byte4)
+            public static int GetInt32(byte byte1, byte byte2, byte byte3, byte byte4, bool reverse = false)
             {
-                return (int)(byte1 & 0xff) | (byte2 << 8 & 0xff00) | (byte3 << 16 & 0xff0000) | (int)(byte4 << 24 & 0xff000000);
+                if (reverse)
+                {
+                    var result = byte4 & 0xff;
+                    result |= byte3 << 8 & 0xff00;
+                    result |= byte2 << 16 & 0xff0000;
+                    result |= (int)(byte1 << 24 & 0xff000000);
+                    return result;
+                }
+                else
+                {
+                    var result = byte1 & 0xff;
+                    result |= byte2 << 8 & 0xff00;
+                    result |= byte3 << 16 & 0xff0000;
+                    result |= (int)(byte4 << 24 & 0xff000000);
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// 将4位比特转换成uint32
+            /// </summary>
+            /// <param name="byte1">byte1</param>
+            /// <param name="byte2">byte2</param>
+            /// <param name="byte3">byte3</param>
+            /// <param name="byte4">byte4</param>
+            /// <param name="reverse">是否反转</param>
+            /// <returns></returns>
+            public static uint GetUInt32(byte byte1, byte byte2, byte byte3, byte byte4, bool reverse = false)
+            {
+                if (reverse)
+                {
+                    var result = byte4 & 0xff;
+                    result |= (byte3 & 0xff) << 8;
+                    result |= (byte2 & 0xff) << 16;
+                    result |= (byte1 & 0xff) << 24;
+                    result = (int)(result & 0xFFFFFFFFL);
+                    return (uint)result;
+                }
+                else
+                {
+                    var result = byte1 & 0xff;
+                    result |= (byte2 & 0xff) << 8;
+                    result |= (byte3 & 0xff) << 16;
+                    result |= (byte4 & 0xff) << 24;
+                    result = (int)(result & 0xFFFFFFFFL);
+                    return (uint)result;
+                }
+            }
+
+            /// <summary>
+            /// 获取UInt32 只能是四位bytes
+            /// </summary>
+            /// <param name="bytes">bytes</param>
+            /// <param name="startIndex">开始索引</param>
+            /// <param name="reverse">是否反转</param>
+            /// <returns></returns>
+            public static uint GetUInt32(byte[] bytes, int startIndex, bool reverse = false)
+            {
+                if(bytes.Length < startIndex + 4)
+                {
+                    return default;
+                }
+                return GetUInt32(bytes[startIndex], bytes[startIndex + 1], bytes[startIndex + 2], bytes[startIndex + 3], reverse);
             }
         }
     }
