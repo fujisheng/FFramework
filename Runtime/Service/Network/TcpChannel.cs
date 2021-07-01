@@ -1,5 +1,4 @@
-﻿using Framework.Collections;
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -8,7 +7,7 @@ namespace Framework.Service.Network
 {
     public class TcpChannel : INetworkChannel
     {
-        readonly Socket socket;
+        Socket socket;
 
         /// <summary>
         /// 接收的包体最大大小
@@ -21,17 +20,22 @@ namespace Framework.Service.Network
         const int recvBufferCapacity = sendPacketMaxSize * 8;
 
         readonly BytesBuffer recvBuffer;
-        readonly Thread recvThread;
-        bool recvThreadCancle = false;
         readonly byte[] buffer;
         INetworkPacket currentPacket;
+
+        readonly Thread recvThread;
+        bool beginReceive = false;
+        bool recvThreadStarted = false;
+
+        bool isConnected = false;
 
         /// <summary>
         /// 是否已经连接到服务器
         /// </summary>
         public bool IsConnected
         {
-            get { return socket != null && socket.Connected; }
+            get { return socket != null && socket.Connected && isConnected; }
+            private set { isConnected = value; }
         }
 
         /// <summary>
@@ -49,11 +53,16 @@ namespace Framework.Service.Network
         /// </summary>
         public Action<INetworkPacket> OnReceiveHandler { get; set; }
 
+        /// <summary>
+        /// 关闭连接的时候调用
+        /// </summary>
+        public Action OnCloseHandler { get; set; }
+
         public TcpChannel()
         {
-            socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
             recvBuffer = new BytesBuffer(recvBufferCapacity);
             buffer = new byte[sendPacketMaxSize];
+
             recvThread = new Thread(ReceiveMessage)
             {
                 IsBackground = true
@@ -72,6 +81,13 @@ namespace Framework.Service.Network
         /// <param name="port">服务器端口号</param>
         public void Connect(string ip, int port)
         {
+            if(socket != null)
+            {
+                Close();
+            }
+
+            socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+
             try
             {
                 var ipAddress = IPAddress.Parse(ip);
@@ -79,8 +95,8 @@ namespace Framework.Service.Network
             }
             catch (Exception e)
             {
-                OnConnectionFailedHandler?.Invoke(e.ToString());
                 Close();
+                OnConnectionFailedHandler?.Invoke(e.ToString());
             }
         }
 
@@ -94,7 +110,14 @@ namespace Framework.Service.Network
             try
             {
                 state.EndConnect(result);
-                recvThread.Start();
+                beginReceive = true;
+
+                if (!recvThreadStarted)
+                {
+                    recvThread.Start();
+                    recvThreadStarted = true;
+                }
+
                 OnConnectionSuccessfulHandler?.Invoke(result);
             }
             catch (Exception ex)
@@ -111,9 +134,9 @@ namespace Framework.Service.Network
         {
             while (true)
             {
-                if(recvThreadCancle == true)
+                if(!beginReceive)
                 {
-                    return;
+                    continue;
                 }
 
                 try
@@ -146,11 +169,14 @@ namespace Framework.Service.Network
                 return;
             }
 
-            if (!IsConnected)
+            try
             {
-                return;
+                socket.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, OnSend, socket);
             }
-            socket.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, OnSend, socket);
+            catch
+            {
+                Close();
+            }
         }
 
         /// <summary>
@@ -210,14 +236,13 @@ namespace Framework.Service.Network
         /// </summary>
         public void Close()
         {
-            if (!IsConnected)
-            {
-                return;
-            }
+            IsConnected = false;
             recvBuffer.Clear();
             Array.Clear(buffer, 0, buffer.Length);
-            socket.Close();
-            recvThreadCancle = true;
+            beginReceive = false;
+            socket?.Close();
+            socket = null;
+            OnCloseHandler?.Invoke();
         }
     }
 }

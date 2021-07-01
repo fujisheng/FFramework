@@ -8,6 +8,7 @@ namespace Framework.Service.Network
         Action<IAsyncResult> OnConnectionSuccessfulHandler { get; set; }
         Action<string> OnConnectionFailedHandler { get; set; }
         Action<INetworkPacket> OnReceiveHandler { get; set; }
+        Action OnCloseHandler { get; set; }
 
         void OnUpdate();
         void Connect(string ip, int port);

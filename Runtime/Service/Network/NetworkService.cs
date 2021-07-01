@@ -1,8 +1,10 @@
 ﻿using FInject;
+using Framework.Service.Threading;
 using System;
 
 namespace Framework.Service.Network
 {
+    [Dependency(typeof(IThreadService))]
     internal sealed class NetworkService : Service, INetworkService
     {
         INetworkChannel channel;
@@ -21,6 +23,8 @@ namespace Framework.Service.Network
         public Action OnClosedHandler { get; set; }
         public Action<INetworkPacket> OnReceiveHandler { get; set; }
 
+        public bool IsConnected { get { return channel != null && channel.IsConnected; } }
+
         /// <summary>
         /// 设置网络频道
         /// </summary>
@@ -33,12 +37,14 @@ namespace Framework.Service.Network
                 this.channel.OnConnectionSuccessfulHandler -= OnConnectionSuccessful;
                 this.channel.OnConnectionFailedHandler -= OnConnectionFailed;
                 this.channel.OnReceiveHandler -= OnReceive;
+                this.channel.OnCloseHandler -= OnClose;
             }
 
             this.channel = channel;
             this.channel.OnConnectionSuccessfulHandler += OnConnectionSuccessful;
             this.channel.OnConnectionFailedHandler += OnConnectionFailed;
             this.channel.OnReceiveHandler += OnReceive;
+            this.channel.OnCloseHandler += OnClose;
         }
 
         /// <summary>
@@ -124,7 +130,11 @@ namespace Framework.Service.Network
         void OnConnectionSuccessful(IAsyncResult result)
         {
             UnityEngine.Debug.Log("Connected");
-            OnConnectionSuccessfulHandler?.Invoke(result);
+            Services.Get<IThreadService>().QueueOnMainThread(() =>
+            {
+                OnConnectionSuccessfulHandler?.Invoke(result);
+            });
+            
         }
 
         /// <summary>
@@ -134,7 +144,22 @@ namespace Framework.Service.Network
         void OnConnectionFailed(string ex)
         {
             UnityEngine.Debug.LogError($"Connect Failed:{ex}");
-            OnConnectionFailedHandler?.Invoke(ex);
+            Services.Get<IThreadService>().QueueOnMainThread(() =>
+            {
+                OnConnectionFailedHandler?.Invoke(ex);
+            });
+        }
+
+        /// <summary>
+        /// 关闭连接
+        /// </summary>
+        void OnClose()
+        {
+            UnityEngine.Debug.LogError("Close Connection");
+            Services.Get<IThreadService>().QueueOnMainThread(() =>
+            {
+                OnClosedHandler?.Invoke();
+            });
         }
 
         /// <summary>
@@ -143,12 +168,6 @@ namespace Framework.Service.Network
         /// <param name="packet">包</param>
         public void Send(INetworkPacket packet)
         {
-            if (channel == null || !channel.IsConnected)
-            {
-                UnityEngine.Debug.LogError("Network Send Failed : Channel is null or not connect");
-                return;
-            }
-
             byte[] bytes = packageHelper.Unpack(packet);
             InternalSend(bytes);
         }
@@ -162,12 +181,6 @@ namespace Framework.Service.Network
         /// <param name="flag">标记</param>
         public void Send<T>(ushort id, T data, PacketFlag flag = PacketFlag.Encrypt) where T : class
         {
-            if (channel == null || !channel.IsConnected)
-            {
-                UnityEngine.Debug.LogError("Network Send Failed : Channel is null or not connect");
-                return;
-            }
-
             if (serializeHelper == null)
             {
                 throw new Exception("NetworkSerializeHelper is null, you need call SetNetworkSerializeHelper first");
@@ -185,12 +198,6 @@ namespace Framework.Service.Network
         /// <param name="flag">标记</param>
         public void Send(ushort id, byte[] bytes, PacketFlag flag = PacketFlag.Encrypt)
         {
-            if (channel == null || !channel.IsConnected)
-            {
-                UnityEngine.Debug.LogError("Network Send Failed : Channel is null or not connect");
-                return;
-            }
-
             var bcc = bccHelper.Calculation(bytes, 0, bytes.Length);
             var resultBytes = bytes;
             if (flag.HasFlag(PacketFlag.Encrypt))
@@ -283,7 +290,6 @@ namespace Framework.Service.Network
         public void Close()
         {
             channel?.Close();
-            OnClosedHandler?.Invoke();
         }
 
         internal override void OnUpdate()

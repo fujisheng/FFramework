@@ -5,6 +5,11 @@ namespace Framework.Service.Network
     public interface INetworkService
     {
         /// <summary>
+        /// 是否已经连接
+        /// </summary>
+        bool IsConnected { get; }
+
+        /// <summary>
         /// 连接成功的回调
         /// </summary>
         Action<IAsyncResult> OnConnectionSuccessfulHandler { get; set; }
