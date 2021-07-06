@@ -208,6 +208,11 @@ namespace Framework.Service.Network
                 }
             }
 
+            if(currentPacket == null)
+            {
+                return;
+            }
+
             //判断当前buffer中的数据长度够不够包头的长度 不够就等待 够就读出来
             if(currentPacket.Head.length > recvBuffer.Size)
             {
