@@ -10,16 +10,15 @@ namespace Framework.Service.Network
         {
             try
             {
-                using(var ms = new MemoryStream())
+                using (var ms = new MemoryStream())
+                using (var zip = new GZipStream(ms, CompressionMode.Compress, true))
                 {
-                    using(var zip = new GZipStream(ms, CompressionMode.Compress, true))
-                    {
-                        zip.Write(bytes, 0, bytes.Length);
-                        byte[] buffer = new byte[ms.Length];
-                        ms.Position = 0;
-                        var l = ms.Read(buffer, 0, buffer.Length);
-                        return (buffer, null);
-                    }
+                    zip.Write(bytes, 0, bytes.Length);
+                    byte[] buffer = new byte[ms.Length];
+                    ms.Position = 0;
+                    var l = ms.Read(buffer, 0, buffer.Length);
+                    return (buffer, null);
+
                 }
             }
             catch (Exception e)
@@ -34,28 +33,24 @@ namespace Framework.Service.Network
             try
             {
                 using(var ms = new MemoryStream(bytes))
+                using(var zip = new GZipStream(ms, CompressionMode.Decompress, true))
+                using(var msreader = new MemoryStream())
                 {
-                    using(var zip = new GZipStream(ms, CompressionMode.Decompress, true))
+                    while (true)
                     {
-                        using(var msreader = new MemoryStream())
+                        int reader = zip.Read(decompressBuffer, 0, decompressBuffer.Length);
+
+                        if (reader <= 0)
                         {
-                            while (true)
-                            {
-                                int reader = zip.Read(decompressBuffer, 0, decompressBuffer.Length);
-                                
-                                if (reader <= 0)
-                                {
-                                    break;
-                                }
-
-                                msreader.Write(decompressBuffer, 0, reader);
-                            }
-
-                            msreader.Position = 0;
-                            Array.Clear(decompressBuffer, 0, decompressBuffer.Length);
-                            return (msreader.ToArray(), null);
+                            break;
                         }
+
+                        msreader.Write(decompressBuffer, 0, reader);
                     }
+
+                    msreader.Position = 0;
+                    Array.Clear(decompressBuffer, 0, decompressBuffer.Length);
+                    return (msreader.ToArray(), null);
                 }
             }
             catch (Exception e)

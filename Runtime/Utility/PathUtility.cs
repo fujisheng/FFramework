@@ -5,7 +5,7 @@ namespace Framework
 {
     public static partial class Utility
     {
-        public static class Patch
+        public static class Path
         {
             /// <summary>
             /// 获取规范的路径。

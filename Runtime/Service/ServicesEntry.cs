@@ -3,7 +3,7 @@
 namespace Framework.Service
 {
     [AddComponentMenu("")]
-    internal class ServicesEntry: MonoBehaviour
+    internal class ServicesEntry : MonoBehaviour
     {
         private void Awake()
         {
@@ -11,20 +11,11 @@ namespace Framework.Service
             Application.lowMemory += OnLowMemory;
         }
 
-        private void Update()
-        {
-            Services.Update();
-        }
+        private void Update() => Services.Update();
 
-        private void LateUpdate()
-        {
-            Services.LateUpdate();
-        }
+        private void LateUpdate() => Services.LateUpdate();
 
-        private void FixedUpdate()
-        {
-            Services.FixedUpdate();
-        }
+        private void FixedUpdate() => Services.FixedUpdate();
 
         private void OnDestroy()
         {
@@ -32,25 +23,13 @@ namespace Framework.Service
             Application.lowMemory -= OnLowMemory;
         }
 
-        private void OnApplicationFocus(bool focus)
-        {
-            Services.ApplicationFocus(focus);
-        }
+        private void OnApplicationFocus(bool focus) => Services.ApplicationFocus(focus);
 
-        private void OnApplicationPause(bool pause)
-        {
-            Services.ApplicationPause(pause);
-        }
+        private void OnApplicationPause(bool pause) => Services.ApplicationPause(pause);
 
-        private void OnApplicationQuit()
-        {
-            Services.ApplicationQuit();
-        }
+        private void OnApplicationQuit() => Services.ApplicationQuit();
 
-        private void OnLowMemory()
-        {
-            Services.OnLowMemory();
-        }
+        private void OnLowMemory() => Services.OnLowMemory();
     }
 }
 

@@ -24,21 +24,19 @@ namespace Framework.Service.Network
         public INetworkPacket Pack(byte[] bytes)
         {
             using (var stream = new MemoryStream())
+            using (var reader = new BinaryReader(stream))
             {
-                using(var reader = new BinaryReader(stream))
-                {
-                    stream.Seek(0, SeekOrigin.End);
-                    stream.Write(bytes, 0, bytes.Length);
-                    stream.Seek(0, SeekOrigin.Begin);
-                    var headBytes = reader.ReadBytes(PacketHead.HeadLength);
-                    var head = new PacketHead(headBytes);
-                    byte[] data = reader.ReadBytes(head.length);
-                    INetworkPacket packet = packetPool.Pop();
-                    packet.WriteHead(head);
-                    packet.WriteData(data);
-                    reader.Close();
-                    return packet;
-                }
+                stream.Seek(0, SeekOrigin.End);
+                stream.Write(bytes, 0, bytes.Length);
+                stream.Seek(0, SeekOrigin.Begin);
+                var headBytes = reader.ReadBytes(PacketHead.HeadLength);
+                var head = new PacketHead(headBytes);
+                byte[] data = reader.ReadBytes(head.length);
+                INetworkPacket packet = packetPool.Pop();
+                packet.WriteHead(head);
+                packet.WriteData(data);
+                reader.Close();
+                return packet;
             }
         }
 

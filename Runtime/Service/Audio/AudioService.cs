@@ -7,7 +7,7 @@ using System;
 
 namespace Framework.Service.Audio
 {
-    [Dependency(typeof(IResourceService))]
+    [Dependencies(typeof(IResourceService))]
     internal sealed class AudioService : Service, IAudioService
     {
         float volume = 1f;

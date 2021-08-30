@@ -6,12 +6,12 @@ namespace Framework.Service
     /// 模块依赖的模块特性
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public class Dependency : Attribute
+    public class DependenciesAttribute : Attribute
     {
-        public readonly Type[] dependency;
-        public Dependency(params Type[] dependency)
+        public readonly Type[] dependencies;
+        public DependenciesAttribute(params Type[] dependency)
         {
-            this.dependency = dependency;
+            this.dependencies = dependency;
         }
     }
 }

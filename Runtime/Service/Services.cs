@@ -42,14 +42,14 @@ namespace Framework.Service
         /// </summary>
         /// <param name="serviceType"></param>
         /// <returns></returns>
-        static Type[] GetServiceDependency(Type serviceType)
+        static Type[] GetServiceDependencies(Type serviceType)
         {
-            var dependency = serviceType.GetCustomAttribute<Dependency>();
-            if(dependency == null)
+            var dependencies = serviceType.GetCustomAttribute<DependenciesAttribute>();
+            if(dependencies == null)
             {
                 return null;
             }
-            return dependency.dependency;
+            return dependencies.dependencies;
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Framework.Service
         /// </summary>
         /// <param name="dependType"></param>
         /// <returns></returns>
-        static bool DependIsLoad(Type dependType)
+        static bool DependencyIsLoad(Type dependType)
         {
             foreach(var service in loadedServices)
             {
@@ -82,21 +82,21 @@ namespace Framework.Service
                 throw new Exception($"can't found this type {serviceName}");
             }
 
-            var module = Injecter.CreateInstance(serviceType);
-            foreach (var mod in loadedServices)
+            var service = Injecter.CreateInstance(serviceType);
+            foreach (var serv in loadedServices)
             {
-                if (mod.GetType().FullName == serviceType.FullName)
+                if (serv.GetType().FullName == serviceType.FullName)
                 {
-                    return mod;
+                    return serv;
                 }
             }
 
-            var dependency = GetServiceDependency(serviceType);
-            if (dependency != null)
+            var dependencies = GetServiceDependencies(serviceType);
+            if (dependencies != null)
             {
-                foreach (var depend in dependency)
+                foreach (var depend in dependencies)
                 {
-                    if (DependIsLoad(depend))
+                    if (DependencyIsLoad(depend))
                     {
                         continue;
                     }
@@ -105,9 +105,9 @@ namespace Framework.Service
                 }
             }
 
-            UnityEngine.Debug.Log($"<color=blue>create service=>{module.GetType().FullName}</color>");
-            loadedServices.Add(module as Service);
-            return module as Service;
+            UnityEngine.Debug.Log($"<color=blue>create service=>{service.GetType().FullName}</color>");
+            loadedServices.Add(service as Service);
+            return service as Service;
         }
 
         /// <summary>
@@ -162,38 +162,22 @@ namespace Framework.Service
             return CreateService(serviceType.FullName);
         }
 
+        #region 各种系统方法入口
+
         /// <summary>
         /// 服务Update
         /// </summary>
-        internal static void Update()
-        {
-            for(int i = 0; i < loadedServices.Count; i++)
-            {
-                loadedServices[i].OnUpdate();
-            }
-        }
+        internal static void Update() => loadedServices.ForEach((item) => item.OnUpdate());
 
         /// <summary>
         /// 服务LateUpdate
         /// </summary>
-        internal static void LateUpdate()
-        {
-            for(int i = 0; i < loadedServices.Count; i++)
-            {
-                loadedServices[i].OnLateUpdate();
-            }
-        }
+        internal static void LateUpdate() => loadedServices.ForEach((item) => item.OnLateUpdate());
 
         /// <summary>
         /// 服务FixedUpdate
         /// </summary>
-        internal static void FixedUpdate()
-        {
-            for (int i = 0; i < loadedServices.Count; i++)
-            {
-                loadedServices[i].OnFixedUpdate();
-            }
-        }
+        internal static void FixedUpdate() => loadedServices.ForEach((item) => item.OnFixedUpdate());
 
         /// <summary>
         /// 释放服务
@@ -221,46 +205,23 @@ namespace Framework.Service
         /// 程序聚焦
         /// </summary>
         /// <param name="focus"></param>
-        internal static void ApplicationFocus(bool focus)
-        {
-            for (int i = 0; i < loadedServices.Count; i++)
-            {
-                loadedServices[i].OnApplicationFocus(focus);
-            }
-        }
+        internal static void ApplicationFocus(bool focus) => loadedServices.ForEach((item) => item.OnApplicationFocus(focus));
 
         /// <summary>
         /// 程序暂停
         /// </summary>
         /// <param name="pause"></param>
-        internal static void ApplicationPause(bool pause)
-        {
-            for (int i = 0; i < loadedServices.Count; i++)
-            {
-                loadedServices[i].OnApplicationPause(pause);
-            }
-        }
+        internal static void ApplicationPause(bool pause) => loadedServices.ForEach((item) => item.OnApplicationPause(pause));
 
         /// <summary>
         /// 程序退出
         /// </summary>
-        internal static void ApplicationQuit()
-        {
-            for (int i = 0; i < loadedServices.Count; i++)
-            {
-                loadedServices[i].OnApplicationQuit();
-            }
-        }
+        internal static void ApplicationQuit() => loadedServices.ForEach((item) => item.OnApplicationQuit());
 
         /// <summary>
         /// 低内存
         /// </summary>
-        internal static void OnLowMemory()
-        {
-            for(int i = 0; i < loadedServices.Count; i++)
-            {
-                loadedServices[i].OnLowMemory();
-            }
-        }
+        internal static void OnLowMemory() => loadedServices.ForEach((item) => item.OnLowMemory());
+        #endregion
     }
 }

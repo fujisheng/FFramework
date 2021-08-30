@@ -4,7 +4,7 @@ using System;
 
 namespace Framework.Service.Network
 {
-    [Dependency(typeof(IThreadService))]
+    [Dependencies(typeof(IThreadService))]
     internal sealed class NetworkService : Service, INetworkService
     {
         INetworkChannel channel;

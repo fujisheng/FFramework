@@ -9,7 +9,7 @@ namespace Framework.Service.ObjectPool
     /// <summary>
     /// 管理所有的GameObject池
     /// </summary>
-    [Dependency(typeof(IResourceService))]
+    [Dependencies(typeof(IResourceService))]
     internal sealed class GameObjectPoolService : Service, IGameObjectPoolService
     {
         Dictionary<string, GameObjectPool> pools = new Dictionary<string, GameObjectPool>();

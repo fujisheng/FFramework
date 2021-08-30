@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using Object = UnityEngine.Object;
+using System.Linq;
 
 namespace Framework.Service.Resource
 {
@@ -54,7 +55,6 @@ namespace Framework.Service.Resource
             return result;
         }
 
-        List<object> keys = new List<object>();
         /// <summary>
         /// 根据标签和名字异步加载资源
         /// </summary>
@@ -63,11 +63,7 @@ namespace Framework.Service.Resource
         /// <returns>所有的资源</returns>
         public async UniTask<IList<T>> LoadAllAsyncWithLabelAndNames<T>(IList<string> labelOrNames) where T : Object
         {
-            keys.Clear();
-            foreach (var key in labelOrNames)
-            {
-                keys.Add(key);
-            }
+            var keys = labelOrNames.OfType<object>();
             return await Addressables.LoadAssetsAsync<T>(keys, null, Addressables.MergeMode.Intersection).Task;
         }
 
