@@ -94,7 +94,6 @@ namespace Framework.Service.Resource.Editor
 
         static void CreateAddressableAssetEntry(string path, string address, string label, string groupName = "Default Local Group")
         {
-#if UNITY_EDITOR
             AddressableAssetSettings settings;
             settings = AssetDatabase.LoadAssetAtPath<AddressableAssetSettings>("Assets/AddressableAssetsData/AddressableAssetSettings.asset");
             AddressableAssetGroup group = settings.FindGroup(groupName);
@@ -111,7 +110,6 @@ namespace Framework.Service.Resource.Editor
                 settings.AddLabel(label);
             }
             entry.SetLabel(label, true);
-#endif
         }
 
         static void GetPath(string dirPath)
