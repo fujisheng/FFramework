@@ -39,10 +39,7 @@ namespace Framework
             /// <param name="ensureSize">要确保从进程的非托管内存中分配内存的大小。</param>
             public static void EnsureCachedHGlobalSize(int ensureSize)
             {
-                if (ensureSize < 0)
-                {
-                    throw new Exception("Ensure size is invalid.");
-                }
+                Assert.IfTrue(ensureSize < 0, new Exception("Ensure size is invalid."));
 
                 if (cachedHGlobalPtr == IntPtr.Zero || cachedHGlobalSize < ensureSize)
                 {
@@ -86,10 +83,7 @@ namespace Framework
             /// <returns>存储转换结果的二进制流。</returns>
             internal static byte[] StructureToBytes<T>(T structure, int structureSize)
             {
-                if (structureSize < 0)
-                {
-                    throw new Exception("Structure size is invalid.");
-                }
+                Assert.IfTrue(structureSize < 0, new Exception("Structure size is invalid."));
 
                 EnsureCachedHGlobalSize(structureSize);
                 System.Runtime.InteropServices.Marshal.StructureToPtr(structure, cachedHGlobalPtr, true);
@@ -143,25 +137,10 @@ namespace Framework
             /// <param name="startIndex">写入存储转换结果的二进制流的起始位置。</param>
             internal static void StructureToBytes<T>(T structure, int structureSize, byte[] result, int startIndex)
             {
-                if (structureSize < 0)
-                {
-                    throw new Exception("Structure size is invalid.");
-                }
-
-                if (result == null)
-                {
-                    throw new Exception("Result is invalid.");
-                }
-
-                if (startIndex < 0)
-                {
-                    throw new Exception("Start index is invalid.");
-                }
-
-                if (startIndex + structureSize > result.Length)
-                {
-                    throw new Exception("Result length is not enough.");
-                }
+                Assert.IfTrue(structureSize < 0, new Exception("Structure size is invalid."));
+                Assert.IfNull(result, new Exception("Result is invalid."));
+                Assert.IfTrue(startIndex < 0, new Exception("Start index is invalid."));
+                Assert.IfTrue(startIndex + structureSize > result.Length, new Exception("Result length is not enough."));
 
                 EnsureCachedHGlobalSize(structureSize);
                 System.Runtime.InteropServices.Marshal.StructureToPtr(structure, cachedHGlobalPtr, true);
@@ -213,25 +192,10 @@ namespace Framework
             /// <returns>存储转换结果的对象。</returns>
             internal static T BytesToStructure<T>(int structureSize, byte[] buffer, int startIndex)
             {
-                if (structureSize < 0)
-                {
-                    throw new Exception("Structure size is invalid.");
-                }
-
-                if (buffer == null)
-                {
-                    throw new Exception("Buffer is invalid.");
-                }
-
-                if (startIndex < 0)
-                {
-                    throw new Exception("Start index is invalid.");
-                }
-
-                if (startIndex + structureSize > buffer.Length)
-                {
-                    throw new Exception("Buffer length is not enough.");
-                }
+                Assert.IfTrue(structureSize < 0, new Exception("Structure size is invalid."));
+                Assert.IfNull(buffer, new Exception("Result is invalid."));
+                Assert.IfTrue(startIndex < 0, new Exception("Start index is invalid."));
+                Assert.IfTrue(startIndex + structureSize > buffer.Length, new Exception("Result length is not enough."));
 
                 EnsureCachedHGlobalSize(structureSize);
                 System.Runtime.InteropServices.Marshal.Copy(buffer, startIndex, cachedHGlobalPtr, structureSize);

@@ -45,10 +45,7 @@ namespace Framework
             /// <returns>是否移除空文件夹成功。</returns>
             public static bool RemoveEmptyDirectory(string directoryName)
             {
-                if (string.IsNullOrEmpty(directoryName))
-                {
-                    throw new Exception("Directory name is invalid.");
-                }
+                Assert.IfIsNullOrEmpty(directoryName, new Exception("Directory name is invalid."));
 
                 try
                 {

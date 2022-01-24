@@ -11,10 +11,7 @@ namespace Framework.Service.Debug
         [Inject]
         public void SetDebugger(IDebugger debugger)
         {
-            if(debugger == null)
-            {
-                throw new NullReferenceException($"debugger can,t be null");
-            }
+            Utility.Assert.IfNull(debugger, new NullReferenceException($"debugger can not be null"));
 
             this.debugger = debugger;
         }

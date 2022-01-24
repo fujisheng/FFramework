@@ -4,7 +4,7 @@ namespace Framework.Service
 {
     public interface IServicesInjectInfo
     {
-        Context Context { get; }
+        Container container { get; }
 
         void Initialize();
     }

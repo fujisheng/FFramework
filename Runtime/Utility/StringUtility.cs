@@ -21,10 +21,7 @@ namespace Framework
             /// <returns>格式化后的字符串。</returns>
             public static string Format(string format, object arg0)
             {
-                if (format == null)
-                {
-                    throw new Exception("Format is invalid.");
-                }
+                Assert.IfNull(format, new Exception("Format is invalid."));
 
                 CheckCachedStringBuilder();
                 cachedStringBuilder.Length = 0;
@@ -41,10 +38,7 @@ namespace Framework
             /// <returns>格式化后的字符串。</returns>
             public static string Format(string format, object arg0, object arg1)
             {
-                if (format == null)
-                {
-                    throw new Exception("Format is invalid.");
-                }
+                Assert.IfNull(format, new Exception("Format is invalid."));
 
                 CheckCachedStringBuilder();
                 cachedStringBuilder.Length = 0;
@@ -62,10 +56,7 @@ namespace Framework
             /// <returns>格式化后的字符串。</returns>
             public static string Format(string format, object arg0, object arg1, object arg2)
             {
-                if (format == null)
-                {
-                    throw new Exception("Format is invalid.");
-                }
+                Assert.IfNull(format, new Exception("Format is invalid."));
 
                 CheckCachedStringBuilder();
                 cachedStringBuilder.Length = 0;
@@ -81,15 +72,8 @@ namespace Framework
             /// <returns>格式化后的字符串。</returns>
             public static string Format(string format, params object[] args)
             {
-                if (format == null)
-                {
-                    throw new Exception("Format is invalid.");
-                }
-
-                if (args == null)
-                {
-                    throw new Exception("Args is invalid.");
-                }
+                Assert.IfNull(format, new Exception("Format is invalid."));
+                Assert.IfNull(args, new Exception("Args is invalid."));
 
                 CheckCachedStringBuilder();
                 cachedStringBuilder.Length = 0;

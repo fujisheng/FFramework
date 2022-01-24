@@ -17,10 +17,7 @@ namespace Framework.Service
 
         static Services() 
         {
-            if (UnityEngine.Object.FindObjectOfType<ServicesEntry>())
-            {
-                throw new Exception("ServiceEntry is not singlon, please check other entry");
-            }
+            Utility.Assert.IfTrue(UnityEngine.Object.FindObjectOfType<ServicesEntry>(), new Exception("ServiceEntry is not singlon, please check other entry"));
             var moduleEntry = new GameObject("[ServiceEntry]");
             moduleEntry.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
             moduleEntry.AddComponent<ServicesEntry>();
@@ -33,7 +30,7 @@ namespace Framework.Service
         public static void SetInjectInfo(IServicesInjectInfo injectInfo)
         {
             InjectInfo = injectInfo;
-            Injecter.Context = injectInfo.Context;
+            Bootstrapper.Container = injectInfo.container;
             injectInfo.Initialize();
         }
 
@@ -77,12 +74,9 @@ namespace Framework.Service
         static Service CreateService(string serviceName)
         {
             Type serviceType = Utility.Assembly.GetType(serviceName);
-            if(serviceType == null)
-            {
-                throw new Exception($"can't found this type {serviceName}");
-            }
+            Utility.Assert.IfNull(serviceType, new Exception($"can't found this type {serviceName}"));
 
-            var service = Injecter.CreateInstance(serviceType);
+            var service = Bootstrapper.CreateInstance(serviceType);
             foreach (var serv in loadedServices)
             {
                 if (serv.GetType().FullName == serviceType.FullName)
@@ -118,16 +112,9 @@ namespace Framework.Service
         /// <remarks>如果要获取的游戏框架服务不存在，则自动创建该游戏框架服务和其依赖。</remarks>
         public static T Get<T>() where T : class
         {
-            if(InjectInfo == null)
-            {
-                throw new NullReferenceException($"You must set Injecter first");
-            }
-
+            Utility.Assert.IfNull(InjectInfo, new NullReferenceException($"You must set Injecter first"));
             Type interfaceType = typeof(T);
-            if (!interfaceType.IsInterface)
-            {
-                throw new Exception($"You must get service by interface, but '{interfaceType.FullName}' is not.");
-            }
+            Utility.Assert.IfFalse(interfaceType.IsInterface, new Exception($"You must get service by interface, but '{interfaceType.FullName}' is not."));
 
             if (!interfaceType.FullName.StartsWith("Framework.Service", StringComparison.Ordinal))
             {
@@ -136,10 +123,7 @@ namespace Framework.Service
 
             string serviceName = string.Format("{0}.{1}", interfaceType.Namespace, interfaceType.Name.Substring(1));
             Type serviceType = Type.GetType(serviceName);
-            if (serviceType == null)
-            {
-                throw new Exception($"Can not find service type '{serviceName}'.");
-            }
+            Utility.Assert.IfNull(serviceType, new Exception($"Can not find service type '{serviceName}'."));
 
             return GetService(serviceType) as T;
         }

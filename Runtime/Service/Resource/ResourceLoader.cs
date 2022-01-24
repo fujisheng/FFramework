@@ -18,10 +18,7 @@ namespace Framework.Service.Resource
 
         void CheckResourceManager()
         {
-            if (resourceManager == null)
-            {
-                throw new Exception("Please add module [ResourceManager] before using ResourceLoader");
-            }
+            Utility.Assert.IfNull(resourceManager, new Exception("Please add module [ResourceManager] before using ResourceLoader"));
         }
 
         /// <summary>
@@ -164,10 +161,7 @@ namespace Framework.Service.Resource
             CheckResourceManager();
             if (cache.TryGetValue(assetName, out Object asset))
             {
-                if(asset is GameObject)
-                {
-                    throw new Exception("It is not allowed to get GameObject through this method. If you want to create GameObject, please use InstantiateAsync");
-                }
+                Utility.Assert.IfIs<GameObject>(asset, new Exception("It is not allowed to get GameObject through this method. If you want to create GameObject, please use InstantiateAsync"));
                 return asset as T;
             }
             UnityEngine.Debug.LogWarning($"Try to get a resource without preloading synchronously : {assetName}");

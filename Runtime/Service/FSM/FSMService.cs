@@ -58,10 +58,7 @@ namespace Framework.Service.FSM
 
         public bool HasFSM(Type ownerType)
         {
-            if (ownerType == null)
-            {
-                throw new Exception("Owner type is invalid.");
-            }
+            Utility.Assert.IfNull(ownerType, new Exception("Owner type is invalid."));
 
             return InternalHasFSM(ownerType.FullName);
         }
@@ -73,10 +70,7 @@ namespace Framework.Service.FSM
 
         public bool HasFsm(Type ownerType, string name)
         {
-            if (ownerType == null)
-            {
-                throw new Exception("Owner type is invalid.");
-            }
+            Utility.Assert.IfNull(ownerType, new Exception("Owner type is invalid."));
 
             return InternalHasFSM(ownerType.FullName);
         }
@@ -88,10 +82,7 @@ namespace Framework.Service.FSM
 
         public FSMBase GetFSM(Type ownerType)
         {
-            if (ownerType == null)
-            {
-                throw new Exception("Owner type is invalid.");
-            }
+            Utility.Assert.IfNull(ownerType, new Exception("Owner type is invalid."));
 
             return InternelGetFSM(ownerType.FullName);
         }
@@ -103,10 +94,7 @@ namespace Framework.Service.FSM
 
         public FSMBase GetFSM(Type ownerType, string name)
         {
-            if (ownerType == null)
-            {
-                throw new Exception("Owner type is invalid.");
-            }
+            Utility.Assert.IfNull(ownerType, new Exception("Owner type is invalid."));
 
             return InternelGetFSM(ownerType.FullName);
         }
@@ -130,10 +118,7 @@ namespace Framework.Service.FSM
 
         public IFSM<T> CreateFSM<T>(string name, T owner, params IState<T>[] states) where T : class
         {
-            if (HasFSM<T>(name))
-            {
-                throw new Exception(string.Format("Already exist FSM '{0}'.", name));
-            }
+            Utility.Assert.IfTrue(HasFSM<T>(name), new Exception(string.Format("Already exist FSM '{0}'.", name)));
 
             FSM<T> fsm = new FSM<T>(name, owner, states);
             FSMS.Add(name, fsm);
@@ -147,10 +132,7 @@ namespace Framework.Service.FSM
 
         public bool DestroyFSM(Type ownerType)
         {
-            if (ownerType == null)
-            {
-                throw new Exception("Owner type is invalid.");
-            }
+            Utility.Assert.IfNull(ownerType, new Exception("Owner type is invalid."));
 
             return InternalDestroyFSM(ownerType.FullName);
         }
@@ -162,30 +144,21 @@ namespace Framework.Service.FSM
 
         public bool DestroyFSM(Type ownerType, string name)
         {
-            if (ownerType == null)
-            {
-                throw new Exception("Owner type is invalid.");
-            }
+            Utility.Assert.IfNull(ownerType, new Exception("Owner type is invalid."));
 
             return InternalDestroyFSM(ownerType.FullName);
         }
 
         public bool DestroyFSM<T>(IFSM<T> fsm) where T : class
         {
-            if (fsm == null)
-            {
-                throw new Exception("FSM is invalid.");
-            }
+            Utility.Assert.IfNull(fsm, new Exception("FSM is invalid."));
 
             return InternalDestroyFSM(typeof(T).FullName);
         }
 
         public bool DestroyFSM(FSMBase fsm)
         {
-            if (fsm == null)
-            {
-                throw new Exception("FSM is invalid.");
-            }
+            Utility.Assert.IfNull(fsm, new Exception("FSM is invalid."));
 
             return InternalDestroyFSM(fsm.OwnerType.FullName);
         }

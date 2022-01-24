@@ -19,10 +19,7 @@ namespace Framework.Service.Audio
         [Inject]
         public void SetResourcesLoader(IResourceLoader resourceLoader)
         {
-            if(resourceLoader == null)
-            {
-                throw new NullReferenceException("resourceLoader can not be null");
-            }
+            Utility.Assert.IfNull(resourceLoader, new NullReferenceException("resourceLoader can not be null"));
             this.resourceLoader = resourceLoader;
         }
 

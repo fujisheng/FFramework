@@ -45,10 +45,7 @@ namespace Framework
             /// <param name="results">已加载的程序集中的所有类型。</param>
             public static void GetTypes(List<Type> results)
             {
-                if (results == null)
-                {
-                    throw new Exception("Results is invalid.");
-                }
+                Assert.IfNull(results, new Exception("Results is invalid."));
 
                 results.Clear();
                 foreach (System.Reflection.Assembly assembly in Assemblies)
@@ -64,10 +61,7 @@ namespace Framework
             /// <returns>已加载的程序集中的指定类型。</returns>
             public static Type GetType(string typeName)
             {
-                if (string.IsNullOrEmpty(typeName))
-                {
-                    throw new Exception("Type name is invalid.");
-                }
+                Assert.IfIsNullOrEmpty(typeName, new Exception("Type name is invalid."));
 
                 Type type = null;
                 if (CachedTypes.TryGetValue(typeName, out type))

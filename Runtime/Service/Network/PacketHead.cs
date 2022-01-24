@@ -87,10 +87,7 @@ namespace Framework.Service.Network
         /// <param name="bytes">bytes</param>
         public PacketHead(byte[] bytes)
         {
-            if(bytes.Length < HeadLength)
-            {
-                throw new Exception("PacketHead Length must >= 8");
-            }
+            Utility.Assert.IfTrue(bytes.Length < HeadLength, new Exception("PacketHead Length must >= 8"));
 
             //消息长度
             int length = Utility.Converter.GetInt32(bytes);
@@ -117,10 +114,7 @@ namespace Framework.Service.Network
         /// <param name="lenght">消息头长度</param>
         public unsafe PacketHead(byte* bytes, int lenght)
         {
-            if (lenght < HeadLength)
-            {
-                throw new Exception("PacketHead Length must >= 8");
-            }
+            Utility.Assert.IfTrue(lenght < HeadLength, new Exception("PacketHead Length must >= 8"));
 
             //消息长度
             int length = Utility.Converter.GetInt32(bytes[0], bytes[1], bytes[2], bytes[3]);

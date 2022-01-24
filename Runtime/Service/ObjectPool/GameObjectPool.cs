@@ -49,14 +49,8 @@ namespace Framework.Service.ObjectPool
         /// <returns></returns>
         protected override async UniTask<GameObject> New()
         {
-            if (string.IsNullOrEmpty(gameObjectName))
-            {
-                throw new Exception("gameObject name is empty, need set gameObject name first");
-            }
-            if (resourceLoader == null)
-            {
-                throw new Exception("resourceLoader is empty, need set resourceLoader first");
-            }
+            Utility.Assert.IfIsNullOrEmpty(gameObjectName, new Exception("gameObject name is empty, need set gameObject name first"));
+            Utility.Assert.IfNull(resourceLoader, new Exception("resourceLoader is empty, need set resourceLoader first"));
             var gameObject = await resourceLoader.InstantiateAsync(gameObjectName);
             gameObject.SetActive(true);
             return gameObject;

@@ -104,20 +104,9 @@ namespace Framework.Service.Network
         /// <param name="port"></param>
         public void Connect(string ip, int port)
         {
-            if(channel == null)
-            {
-                throw new Exception("Channel is null, you need call SetNetworkChannel first");
-            }
-
-            if (bccHelper == null)
-            {
-                throw new Exception("NetworkBCCHelper is null, you need call SetNetworkBCCHelper first");
-            }
-
-            if (packageHelper == null)
-            {
-                throw new Exception("NetworkPackageHelper is null, you need call SetNetworkPackageHelper first");
-            }
+            Utility.Assert.IfNull(channel, new Exception("Channel is null, you need call SetNetworkChannel first"));
+            Utility.Assert.IfNull(bccHelper, new Exception("NetworkBCCHelper is null, you need call SetNetworkBCCHelper first"));
+            Utility.Assert.IfNull(packageHelper, new Exception("NetworkPackageHelper is null, you need call SetNetworkPackageHelper first"));
 
             channel.Connect(ip, port);
             UnityEngine.Debug.Log($"Connect Server {ip}:{port}");
@@ -181,10 +170,7 @@ namespace Framework.Service.Network
         /// <param name="flag">标记</param>
         public void Send<T>(ushort id, T data, PacketFlag flag = PacketFlag.Encrypt) where T : class
         {
-            if (serializeHelper == null)
-            {
-                throw new Exception("NetworkSerializeHelper is null, you need call SetNetworkSerializeHelper first");
-            }
+            Utility.Assert.IfNull(serializeHelper, new Exception("NetworkSerializeHelper is null, you need call SetNetworkSerializeHelper first"));
 
             var bytes = serializeHelper.Serialize<T>(data);
             Send(id, bytes, flag);
@@ -202,10 +188,7 @@ namespace Framework.Service.Network
             var resultBytes = bytes;
             if (flag.HasFlag(PacketFlag.Encrypt))
             {
-                if (encryptHelper == null)
-                {
-                    throw new Exception("Network Packet has Encrypt flag, but NetworkEncryptHelper is null, please call SetNetworkEncyptHelper first");
-                }
+                Utility.Assert.IfNull(encryptHelper, new Exception("Network Packet has Encrypt flag, but NetworkEncryptHelper is null, please call SetNetworkEncyptHelper first"));
 
                 resultBytes = encryptHelper.Encrypt(bytes, 0, bytes.Length);
             }
@@ -241,10 +224,7 @@ namespace Framework.Service.Network
             //如有有加密标记 则执行解密行为
             if (flags.HasFlag(PacketFlag.Encrypt))
             {
-                if(encryptHelper == null)
-                {
-                    throw new Exception("Network Packet has Encrypt flag, but NetworkEncryptHelper is null, please call SetNetworkEncyptHelper first");
-                }
+                Utility.Assert.IfNull(encryptHelper, new Exception("Network Packet has Encrypt flag, but NetworkEncryptHelper is null, please call SetNetworkEncyptHelper first"));
 
                 resultBytes = encryptHelper.Decrypt(resultBytes, 0, resultBytes.Length);
                 var checkResult = bccHelper.Check(resultBytes, 0, resultBytes.Length, packet.Head.bcc);
@@ -259,10 +239,7 @@ namespace Framework.Service.Network
             //如果有压缩标记 则执行解压缩
             if (flags.HasFlag(PacketFlag.Compress))
             {
-                if(compressHelper == null)
-                {
-                    throw new Exception("Network Packet has Compress flag, but NetworkCompressHelper is null, please call SetNetworkCompressHelper first");
-                }
+                Utility.Assert.IfNull(compressHelper, new Exception("Network Packet has Compress flag, but NetworkCompressHelper is null, please call SetNetworkCompressHelper first"));
 
                 var (bytes, error) = compressHelper.Decompress(resultBytes);
                 var hasError = !string.IsNullOrEmpty(error);

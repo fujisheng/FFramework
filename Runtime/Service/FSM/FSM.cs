@@ -58,10 +58,7 @@ namespace Framework.Service.FSM
         /// <param name="states">有限状态机状态集合。</param>
         public FSM(string name, T owner, params IState<T>[] states) : base(name)
         {
-            if (owner == null)
-            {
-                throw new Exception("FSM owner is invalid.");
-            }
+            Utility.Assert.IfNull(owner, new Exception("FSM owner is invalid."));
 
             if (states == null || states.Length < 1)
             {
@@ -74,16 +71,9 @@ namespace Framework.Service.FSM
 
             foreach (IState<T> state in states)
             {
-                if (state == null)
-                {
-                    throw new Exception("FSM states is invalid.");
-                }
-
+                Utility.Assert.IfNull(state, new Exception("FSM states is invalid."));
                 string stateName = state.GetType().FullName;
-                if (this.states.ContainsKey(stateName))
-                {
-                    throw new Exception(string.Format("FSM '{0}' state '{1}' is already exist.", name, stateName));
-                }
+                Utility.Assert.IfContainsKey(this.states, stateName, new Exception(string.Format("FSM '{0}' state '{1}' is already exist.", name, stateName)));
 
                 this.states.Add(stateName, state);
                 state.OnInit(this);
@@ -100,16 +90,9 @@ namespace Framework.Service.FSM
         /// <typeparam name="TState">要开始的有限状态机状态类型。</typeparam>
         public void Start<TState>() where TState : IState<T>
         {
-            if (IsRunning)
-            {
-                throw new Exception("FSM is running, can not start again.");
-            }
-
+            Utility.Assert.IfTrue(IsRunning, new Exception("FSM is running, can not start again."));
             IState<T> state = GetState<TState>();
-            if (state == null)
-            {
-                throw new Exception(string.Format("FSM '{0}' can not start state '{1}' which is not exist.", Name, typeof(TState).FullName));
-            }
+            Utility.Assert.IfNull(state, new Exception(string.Format("FSM '{0}' can not start state '{1}' which is not exist.", Name, typeof(TState).FullName)));
 
             currentStateTime = 0f;
             CurrentState = state;
@@ -122,26 +105,11 @@ namespace Framework.Service.FSM
         /// <param name="stateType">要开始的有限状态机状态类型。</param>
         public void Start(Type stateType)
         {
-            if (IsRunning)
-            {
-                throw new Exception("FSM is running, can not start again.");
-            }
-
-            if (stateType == null)
-            {
-                throw new Exception("State type is invalid.");
-            }
-
-            if (!typeof(IState<T>).IsAssignableFrom(stateType))
-            {
-                throw new Exception(string.Format("State type '{0}' is invalid.", stateType.FullName));
-            }
-
+            Utility.Assert.IfTrue(IsRunning, new Exception("FSM is running, can not start again."));
+            Utility.Assert.IfNull(stateType, new Exception("State type is invalid."));
+            Utility.Assert.IfNot<IState<T>>(stateType, new Exception(string.Format("State type '{0}' is invalid.", stateType.FullName)));
             IState<T> state = GetState(stateType);
-            if (state == null)
-            {
-                throw new Exception(string.Format("FSM '{0}' can not start state '{1}' which is not exist.", Name, stateType.FullName));
-            }
+            Utility.Assert.IfNull(state, new Exception(string.Format("FSM '{0}' can not start state '{1}' which is not exist.", Name, stateType.FullName)));
 
             currentStateTime = 0f;
             CurrentState = state;
@@ -165,15 +133,8 @@ namespace Framework.Service.FSM
         /// <returns>是否存在有限状态机状态。</returns>
         public bool HasState(Type stateType)
         {
-            if (stateType == null)
-            {
-                throw new Exception("State type is invalid.");
-            }
-
-            if (!typeof(IState<T>).IsAssignableFrom(stateType))
-            {
-                throw new Exception(string.Format("State type '{0}' is invalid.", stateType.FullName));
-            }
+            Utility.Assert.IfNull(stateType, new Exception("State type is invalid."));
+            Utility.Assert.IfNot<IState<T>>(stateType, new Exception(string.Format("State type '{0}' is invalid.", stateType.FullName)));
 
             return states.ContainsKey(stateType.FullName);
         }
@@ -200,15 +161,8 @@ namespace Framework.Service.FSM
         /// <returns>要获取的有限状态机状态。</returns>
         public IState<T> GetState(Type stateType)
         {
-            if (stateType == null)
-            {
-                throw new Exception("State type is invalid.");
-            }
-
-            if (!typeof(IState<T>).IsAssignableFrom(stateType))
-            {
-                throw new Exception(string.Format("State type '{0}' is invalid.", stateType.FullName));
-            }
+            Utility.Assert.IfNull(stateType, new Exception("State type is invalid."));
+            Utility.Assert.IfNot<IState<T>>(stateType, new Exception(string.Format("State type '{0}' is invalid.", stateType.FullName)));
 
             if (states.TryGetValue(stateType.FullName, out IState<T> state))
             {
@@ -225,10 +179,7 @@ namespace Framework.Service.FSM
         /// <param name="eventId">事件编号。</param>
         public void FireEvent(object sender, int eventId)
         {
-            if (CurrentState == null)
-            {
-                throw new Exception("Current state is invalid.");
-            }
+            Utility.Assert.IfNull(CurrentState, new Exception("Current state is invalid."));
 
             CurrentState.OnEvent(this, sender, eventId, null);
         }
@@ -241,10 +192,7 @@ namespace Framework.Service.FSM
         /// <param name="userData">用户自定义数据。</param>
         public void FireEvent(object sender, int eventId, object userData)
         {
-            if (CurrentState == null)
-            {
-                throw new Exception("Current state is invalid.");
-            }
+            Utility.Assert.IfNull(CurrentState, new Exception("Current state is invalid."));
 
             CurrentState.OnEvent(this, sender, eventId, userData);
         }
@@ -256,10 +204,7 @@ namespace Framework.Service.FSM
         /// <returns>有限状态机数据是否存在。</returns>
         public bool HasData(string name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new Exception("Data name is invalid.");
-            }
+            Utility.Assert.IfIsNullOrEmpty(name, new Exception("Data name is invalid."));
 
             return datas.ContainsKey(name);
         }
@@ -282,10 +227,7 @@ namespace Framework.Service.FSM
         /// <returns>要获取的有限状态机数据。</returns>
         public IArgs GetData(string name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new Exception("Data name is invalid.");
-            }
+            Utility.Assert.IfIsNullOrEmpty(name, new Exception("Data name is invalid."));
 
             if (datas.TryGetValue(name, out IArgs data))
             {
@@ -303,10 +245,7 @@ namespace Framework.Service.FSM
         /// <param name="data">要设置的有限状态机数据。</param>
         public void SetData<TData>(string name, TData data) where TData : IArgs
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new Exception("Data name is invalid.");
-            }
+            Utility.Assert.IfIsNullOrEmpty(name, new Exception("Data name is invalid."));
 
             datas[name] = data;
         }
@@ -318,10 +257,7 @@ namespace Framework.Service.FSM
         /// <param name="data">要设置的有限状态机数据。</param>
         public void SetData(string name, IArgs data)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new Exception("Data name is invalid.");
-            }
+            Utility.Assert.IfIsNullOrEmpty(name, new Exception("Data name is invalid."));
 
             datas[name] = data;
         }
@@ -333,10 +269,7 @@ namespace Framework.Service.FSM
         /// <returns>是否移除有限状态机数据成功。</returns>
         public bool RemoveData(string name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new Exception("Data name is invalid.");
-            }
+            Utility.Assert.IfIsNullOrEmpty(name, new Exception("Data name is invalid."));
 
             return datas.Remove(name);
         }
@@ -392,16 +325,9 @@ namespace Framework.Service.FSM
         /// <param name="stateType">要切换到的有限状态机状态类型。</param>
         public void ChangeState(Type stateType)
         {
-            if (CurrentState == null)
-            {
-                throw new Exception("Current state is invalid.");
-            }
-
+            Utility.Assert.IfNull(CurrentState, new Exception("Current state is invalid."));
             IState<T> state = GetState(stateType);
-            if (state == null)
-            {
-                throw new Exception(string.Format("FSM '{0}' can not change state to '{1}' which is not exist.", Name, stateType.FullName));
-            }
+            Utility.Assert.IfNull(state, new Exception(string.Format("FSM '{0}' can not change state to '{1}' which is not exist.", Name, stateType.FullName)));
 
             CurrentState.OnLeave(this, false);
             currentStateTime = 0f;

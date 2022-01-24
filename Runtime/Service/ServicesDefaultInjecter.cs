@@ -7,24 +7,24 @@ namespace Framework.Service
 {
     public class ServicesDefaultInjectInfo : IServicesInjectInfo
     {
-        public Context Context { get; private set; }
+        public Container container { get; private set; }
 
         public ServicesDefaultInjectInfo()
         {
-            Context = new Context();
+            container = new Container();
         }
 
         public void Initialize()
         {
             var resourceManager = Services.Get<IResourceService>();
-            Context.Bind<IResourceService>().AsInstance(resourceManager);
-            Context.Bind<IResourceLoader>().As<ResourceLoader>();
-            Context.Bind<IDebugger>().As<UnityDebugger>();
+            container.Bind<IResourceService>().AsInstance(resourceManager);
+            container.Bind<IResourceLoader>().As<ResourceLoader>();
+            container.Bind<IDebugger>().As<UnityDebugger>();
 
-            Context.Bind<INetworkChannel>().AsInstance(new TcpChannel());
-            Context.Bind<INetworkPackageHelper>().AsInstance(new DefaultNetworkPackageHelper(new PacketPool()));
-            Context.Bind<INetworkBCCHelper>().AsInstance(new DefaultNetworkBCCHelper());
-            Context.Bind<INetworkCompressHelper>().AsInstance(new DefaultNetworkCompressHelper());
+            container.Bind<INetworkChannel>().AsInstance(new TcpChannel());
+            container.Bind<INetworkPackageHelper>().AsInstance(new DefaultNetworkPackageHelper(new PacketPool()));
+            container.Bind<INetworkBCCHelper>().AsInstance(new DefaultNetworkBCCHelper());
+            container.Bind<INetworkCompressHelper>().AsInstance(new DefaultNetworkCompressHelper());
         }
     }
 }

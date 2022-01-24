@@ -37,10 +37,7 @@ namespace Framework
             /// <returns>厘米。</returns>
             public static float GetCentimetersFromPixels(float pixels)
             {
-                if (ScreenDpi <= 0)
-                {
-                    throw new Exception("You must set screen DPI first.");
-                }
+                Assert.IfTrue(ScreenDpi <= 0, new Exception("You must set screen DPI first."));
 
                 return InchesToCentimeters * pixels / ScreenDpi;
             }
@@ -52,10 +49,7 @@ namespace Framework
             /// <returns>像素。</returns>
             public static float GetPixelsFromCentimeters(float centimeters)
             {
-                if (ScreenDpi <= 0)
-                {
-                    throw new Exception("You must set screen DPI first.");
-                }
+                Assert.IfTrue(ScreenDpi <= 0, new Exception("You must set screen DPI first."));
 
                 return CentimetersToInches * centimeters * ScreenDpi;
             }
@@ -67,10 +61,7 @@ namespace Framework
             /// <returns>英寸。</returns>
             public static float GetInchesFromPixels(float pixels)
             {
-                if (ScreenDpi <= 0)
-                {
-                    throw new Exception("You must set screen DPI first.");
-                }
+                Assert.IfTrue(ScreenDpi <= 0, new Exception("You must set screen DPI first."));
 
                 return pixels / ScreenDpi;
             }
@@ -82,10 +73,7 @@ namespace Framework
             /// <returns>像素。</returns>
             public static float GetPixelsFromInches(float inches)
             {
-                if (ScreenDpi <= 0)
-                {
-                    throw new Exception("You must set screen DPI first.");
-                }
+                Assert.IfTrue(ScreenDpi <= 0, new Exception("You must set screen DPI first."));
 
                 return inches * ScreenDpi;
             }
@@ -120,15 +108,8 @@ namespace Framework
             /// <param name="startIndex">buffer 内的起始位置。</param>
             public static void GetBytes(bool value, byte[] buffer, int startIndex)
             {
-                if (buffer == null)
-                {
-                    throw new Exception("Buffer is invalid.");
-                }
-
-                if (startIndex < 0 || startIndex + 1 > buffer.Length)
-                {
-                    throw new Exception("Start index is invalid.");
-                }
+                Assert.IfNull(buffer, new Exception("Buffer is invalid."));
+                Assert.IfTrue(startIndex < 0 || startIndex + 1 > buffer.Length, new Exception("Start index is invalid."));
 
                 buffer[startIndex] = value ? (byte)1 : (byte)0;
             }
@@ -238,15 +219,8 @@ namespace Framework
             /// <param name="startIndex">buffer 内的起始位置。</param>
             public static unsafe void GetBytes(short value, byte[] buffer, int startIndex)
             {
-                if (buffer == null)
-                {
-                    throw new Exception("Buffer is invalid.");
-                }
-
-                if (startIndex < 0 || startIndex + 2 > buffer.Length)
-                {
-                    throw new Exception("Start index is invalid.");
-                }
+                Assert.IfNull(buffer, new Exception("Buffer is invalid."));
+                Assert.IfTrue(startIndex < 0 || startIndex + 2 > buffer.Length, new Exception("Start index is invalid."));
 
                 fixed (byte* valueRef = buffer)
                 {
@@ -359,15 +333,8 @@ namespace Framework
             /// <param name="startIndex">buffer 内的起始位置。</param>
             public static unsafe void GetBytes(int value, byte[] buffer, int startIndex)
             {
-                if (buffer == null)
-                {
-                    throw new Exception("Buffer is invalid.");
-                }
-
-                if (startIndex < 0 || startIndex + 4 > buffer.Length)
-                {
-                    throw new Exception("Start index is invalid.");
-                }
+                Assert.IfNull(buffer, new Exception("Buffer is invalid."));
+                Assert.IfTrue(startIndex < 0 || startIndex + 4 > buffer.Length, new Exception("Start index is invalid."));
 
                 fixed (byte* valueRef = buffer)
                 {
@@ -480,15 +447,8 @@ namespace Framework
             /// <param name="startIndex">buffer 内的起始位置。</param>
             public static unsafe void GetBytes(long value, byte[] buffer, int startIndex)
             {
-                if (buffer == null)
-                {
-                    throw new Exception("Buffer is invalid.");
-                }
-
-                if (startIndex < 0 || startIndex + 8 > buffer.Length)
-                {
-                    throw new Exception("Start index is invalid.");
-                }
+                Assert.IfNull(buffer, new Exception("Buffer is invalid."));
+                Assert.IfTrue(startIndex < 0 || startIndex + 8 > buffer.Length, new Exception("Start index is invalid."));
 
                 fixed (byte* valueRef = buffer)
                 {
@@ -720,15 +680,8 @@ namespace Framework
             /// <returns>用于存放结果的字节数组。</returns>
             public static byte[] GetBytes(string value, Encoding encoding)
             {
-                if (value == null)
-                {
-                    throw new Exception("Value is invalid.");
-                }
-
-                if (encoding == null)
-                {
-                    throw new Exception("Encoding is invalid.");
-                }
+                Assert.IfNull(value, new Exception("Value is invalid."));
+                Assert.IfNull(encoding, new Exception("Encoding is invalid."));
 
                 return encoding.GetBytes(value);
             }
@@ -755,15 +708,8 @@ namespace Framework
             /// <returns>buffer 内实际填充了多少字节。</returns>
             public static int GetBytes(string value, Encoding encoding, byte[] buffer, int startIndex)
             {
-                if (value == null)
-                {
-                    throw new Exception("Value is invalid.");
-                }
-
-                if (encoding == null)
-                {
-                    throw new Exception("Encoding is invalid.");
-                }
+                Assert.IfNull(value, new Exception("Value is invalid."));
+                Assert.IfNull(encoding, new Exception("Encoding is invalid."));
 
                 return encoding.GetBytes(value, 0, value.Length, buffer, startIndex);
             }
@@ -786,15 +732,8 @@ namespace Framework
             /// <returns>转换后的字符串。</returns>
             public static string GetString(byte[] value, Encoding encoding)
             {
-                if (value == null)
-                {
-                    throw new Exception("Value is invalid.");
-                }
-
-                if (encoding == null)
-                {
-                    throw new Exception("Encoding is invalid.");
-                }
+                Assert.IfNull(value, new Exception("Value is invalid."));
+                Assert.IfNull(encoding, new Exception("Encoding is invalid."));
 
                 return encoding.GetString(value);
             }
@@ -821,15 +760,8 @@ namespace Framework
             /// <returns>转换后的字符串。</returns>
             public static string GetString(byte[] value, int startIndex, int length, Encoding encoding)
             {
-                if (value == null)
-                {
-                    throw new Exception("Value is invalid.");
-                }
-
-                if (encoding == null)
-                {
-                    throw new Exception("Encoding is invalid.");
-                }
+                Assert.IfNull(value, new Exception("Value is invalid."));
+                Assert.IfNull(encoding, new Exception("Encoding is invalid."));
 
                 return encoding.GetString(value, startIndex, length);
             }

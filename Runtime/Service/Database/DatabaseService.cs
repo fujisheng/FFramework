@@ -20,15 +20,8 @@ namespace Framework.Service.Database
             var databaseType = typeof(TDatabase);
             var database = Activator.CreateInstance(databaseType, true);
 
-            if(!(database is IDatabase))
-            {
-                throw new Exception($"{databaseType.FullName} is not Database");
-            }
-
-            if (databaseMap.ContainsKey(name))
-            {
-                throw new Exception($"already exists database name:{name}");
-            }
+            Utility.Assert.IfNot<IDatabase>(database, new Exception($"{databaseType.FullName} is not Database"));
+            Utility.Assert.IfContainsKey(databaseMap, name, new Exception($"already exists database name:{name}"));
 
             databaseMap.Add(name, database as IDatabase);
         }
@@ -39,10 +32,7 @@ namespace Framework.Service.Database
         /// <param name="database">要添加的数据库</param>
         public void AddDatabase(IDatabase database)
         {
-            if (databaseMap.ContainsKey(database.Name))
-            {
-                throw new Exception($"already exists database name:{database.Name}");
-            }
+            Utility.Assert.IfContainsKey(databaseMap, database.Name, new Exception($"already exists database name:{database.Name}"));
 
             databaseMap.Add(database.Name, database as IDatabase);
         } 
