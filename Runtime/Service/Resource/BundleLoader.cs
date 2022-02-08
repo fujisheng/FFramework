@@ -8,7 +8,7 @@ namespace Framework.Service.Resource
         AssetBundleManifest manifest;
         Dictionary<string, Bundle> bundleCache;
 
-        private BundleLoader()
+        public BundleLoader()
         {
             bundleCache = new Dictionary<string, Bundle>();
             AssetsReferenceTree.Instance.Alloc(AssetsReferenceTree.Root, this);
@@ -24,6 +24,7 @@ namespace Framework.Service.Resource
             var bundlePath = $"Assets/AssetsBundle/AssetsBundle";
             var bundle = AssetBundle.LoadFromFile(bundlePath);
             var assetName = bundle.GetAllAssetNames()[0];
+            UnityEngine.Debug.Log("LoadManifest");
             manifest = bundle.LoadAsset<AssetBundleManifest>(assetName);
         }
 

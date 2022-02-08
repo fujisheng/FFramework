@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Framework
 {
@@ -7,6 +8,7 @@ namespace Framework
     {
         public static class Assembly
         {
+            public const BindingFlags AllFlag = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static;
             private static readonly System.Reflection.Assembly[] Assemblies = null;
             private static readonly Dictionary<string, Type> CachedTypes = new Dictionary<string, Type>(StringComparer.Ordinal);
 
