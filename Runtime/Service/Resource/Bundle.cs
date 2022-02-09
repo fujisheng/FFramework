@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -8,11 +9,11 @@ namespace Framework.Service.Resource
     {
         string bundleName;
         AssetBundle bundle;
-        readonly Dictionary<string, Asset> assetCache;
+        readonly ConcurrentDictionary<string, Asset> assetCache;
 
         internal Bundle(AssetBundle assetBundle)
         {
-            assetCache = new Dictionary<string, Asset>();
+            assetCache = new ConcurrentDictionary<string, Asset>();
             bundle = assetBundle;
             bundleName = assetBundle.name;
         }
@@ -30,15 +31,28 @@ namespace Framework.Service.Resource
 
         internal Asset LoadAsset(string name)
         {
-            var get = assetCache.TryGetValue(name, out Asset asset);
-            if (get)
+            if(assetCache.TryGetValue(name, out var asset))
             {
                 return asset;
             }
 
             var obj = bundle.LoadAsset<Object>(name);
             asset = new Asset(obj);
-            assetCache.Add(name, asset);
+            assetCache.TryAdd(name, asset);
+            AssetsReferenceTree.Instance.Alloc(this, asset);
+            return asset;
+        }
+
+        internal async UniTask<Asset> LoadAssetAsync(string name)
+        {
+            if(assetCache.TryGetValue(name, out var asset))
+            {
+                return asset;
+            }
+
+            var obj = await bundle.LoadAssetAsync<Object>(name);
+            asset = new Asset(obj);
+            assetCache.TryAdd(name, asset);
             AssetsReferenceTree.Instance.Alloc(this, asset);
             return asset;
         }

@@ -7,6 +7,16 @@ namespace Framework.Editor
         public T Value { get; private set; }
         public Rect Rect { get; private set; }
 
+        Vector2 offset = Vector2.zero;
+
+        public Rect RenderRect
+        {
+            get
+            {
+                return new Rect(Rect.x + offset.x, Rect.y + offset.y, Rect.width, Rect.height);
+            }
+        }
+
         public Node(Rect rect, T value)
         {
             this.Rect = rect;
@@ -30,13 +40,12 @@ namespace Framework.Editor
 
         public virtual void OnDrag(Vector2 delta)
         {
-            var position = Rect.position + delta;
-            this.Rect = new Rect(position.x, position.y, Rect.width, Rect.height);
+            offset += delta;
         }
 
         public virtual void Draw()
         {
-            GUI.Box(Rect, Value.ToString());
+            GUI.Box(RenderRect, Value.ToString());
         }
     }
 }

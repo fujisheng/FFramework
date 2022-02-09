@@ -119,14 +119,5 @@ namespace Framework
             roots.RemoveAll(item => item.mark == Mark.White);
             markSet.Clear();
         }
-
-        /// <summary>
-        /// 获取所有的根节点
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<MapNode<IReference>> GetRoots()
-        {
-            return roots;
-        }
     }
 }

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+﻿using System.Collections.Generic;
 using Framework.Collections;
-using Framework.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,7 +8,7 @@ namespace Framework.Service.Resource.Editor
     public class AssetReferenceTreeEditor : EditorWindow
     {
         const string AssetsReferenceTreeTypeName = "Framework.Service.Resource.AssetsReferenceTree";
-        Dropdown runModel;
+        ReferenceGraph referenceGraph;
 
         [MenuItem("Window/AssetReferenceTree")]
         static void OpenWindow()
@@ -21,23 +17,15 @@ namespace Framework.Service.Resource.Editor
             window.titleContent = new GUIContent("AssetReferenceTree");
         }
 
-        public enum RunType
-        {
-            Runtime = 2,
-            Click = 3,
-        };
-
         private void OnEnable()
         {
-            runModel = new Dropdown(new Rect(110, 0, 100, 30), typeof(RunType));
+            
         }
 
         private void OnGUI()
         {
             DrawMenu();
-            Utility.Nodes?.ForEach(item => item.Draw());
-            Utility.connections?.ForEach(item => item.Draw());
-
+            referenceGraph?.Draw();
             ProcessEvents(Event.current);
         }
 
@@ -45,25 +33,19 @@ namespace Framework.Service.Resource.Editor
         {
             if (Application.isPlaying == false)
             {
-                Utility.Clear();
-                GUI.Box(new Rect(0f, 0f, 200f, 30f), "必须在Play模式才能运行");
+                referenceGraph?.Clear();
+                referenceGraph = null;
+                GUI.Box(new Rect(0f, 0f, 200f, 20f), "必须在Play模式才能运行");
                 return;
             }
 
-            if (GUI.Button(new Rect(0, 0, 100, 30), "Clear"))
+            if (GUI.Button(new Rect(0, 0, 100, 20), "Clear"))
             {
-                Utility.Clear();
+                referenceGraph?.Clear();
+                referenceGraph = null;
             }
 
-            runModel.Draw();
-            if (runModel.SelectedValue == (int)RunType.Click)
-            {
-                if (GUI.Button(new Rect(220, 0, 100, 30), new GUIContent("TakeSample")))
-                {
-                    TakeSample();
-                }
-            }
-            else
+            if (GUI.Button(new Rect(120, 0, 100, 20), new GUIContent("TakeSample")))
             {
                 TakeSample();
             }
@@ -71,22 +53,25 @@ namespace Framework.Service.Resource.Editor
 
         void TakeSample()
         {
-            Utility.Clear();
+            referenceGraph?.Clear();
 
-            var flag = Framework.Utility.Assembly.AllFlag;
-            var type = Framework.Utility.Assembly.GetType(AssetsReferenceTreeTypeName);
-            if (type == null)
+            if(referenceGraph == null)
             {
-                UnityEngine.Debug.LogError("没有找到AssetsReferenceTree");
-                return;
-            }
-            var property = type.GetProperty("Instance", flag);
-            var instance = property.GetValue(null);
-            var roots = instance.GetType().GetMethod("GetRoots").Invoke(instance, null) as IEnumerable<MapNode<IReference>>;
+                var flag = Utility.Assembly.AllFlag;
+                var type = Utility.Assembly.GetType(AssetsReferenceTreeTypeName);
+                if (type == null)
+                {
+                    UnityEngine.Debug.LogError("没有找到AssetsReferenceTree");
+                    return;
+                }
 
-            foreach (var @ref in roots)
-            {
-                Utility.CalculateNodePositions(@ref);
+                var instance = type.GetProperty("Instance", flag).GetValue(null);
+                UnityEngine.Debug.Log(type.BaseType.GetField("roots", flag).GetValue(instance));
+                var roots = type.BaseType.GetField("roots", flag).GetValue(instance) as IEnumerable<MapNode<IReference>>;
+                foreach (var @ref in roots)
+                {
+                    referenceGraph = new ReferenceGraph(@ref);
+                }
             }
         }
 
@@ -105,7 +90,7 @@ namespace Framework.Service.Resource.Editor
 
         void OnDrag(Vector2 delta)
         {
-            Utility.Nodes?.ForEach(item => item.OnDrag(delta));
+            referenceGraph?.OnDrag(delta);
             GUI.changed = true;
         }
     }

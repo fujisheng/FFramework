@@ -39,7 +39,7 @@ namespace Framework.Service.Resource.Editor
             outPort = new Port(this, PortType.Out, outPortStyle);
         }
 
-        public ReferenceNode(IReference value) : this(new Rect(0f, 0f, 100f, 50f), value) { }
+        public ReferenceNode(IReference value) : this(new Rect(0f, 0f, 150f, 50f), value) { }
 
         public void SetMod(float mod)
         {
@@ -50,11 +50,11 @@ namespace Framework.Service.Resource.Editor
         {
             inPort.Draw();
             outPort.Draw();
-            GUI.Box(Rect, "", style);
-            GUI.Label(new Rect(Rect.x + 10, Rect.y + 5, Rect.width - 20f, Rect.height), Value?.ToString());
+            GUI.Box(RenderRect, "", style);
+            GUI.Label(new Rect(RenderRect.x + 10, RenderRect.y + 5, RenderRect.width - 20f, RenderRect.height), Value?.ToString());
 
             var size = Framework.Editor.Utility.Memory.GetUnityObjectFieldPropertyRuntimeMemorySize(Value);
-            GUI.Label(new Rect(Rect.x + 10, Rect.y + 15, Rect.width - 20f, Rect.height), $"{size / 1000f}kb");
+            GUI.Label(new Rect(RenderRect.x + 10, RenderRect.y + 15, RenderRect.width - 20f, RenderRect.height), $"{size / 1000f}kb");
         }
     }
 }

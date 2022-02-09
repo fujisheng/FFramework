@@ -32,6 +32,22 @@ namespace Framework.Service
             InjectInfo = injectInfo;
             Bootstrapper.Container = injectInfo.container;
             injectInfo.Initialize();
+
+            CreateDefaultService();
+        }
+
+        /// <summary>
+        /// 创建默认服务
+        /// </summary>
+        static void CreateDefaultService()
+        {
+            foreach(var type in Utility.Assembly.GetTypes())
+            {
+                if(type.GetCustomAttribute<DefaultServiceAttribute>() != null)
+                {
+                    CreateService(type.FullName);
+                }
+            }
         }
 
         /// <summary>

@@ -34,12 +34,9 @@ namespace Framework.Service.Resource
             return asset is T;
         }
 
-        internal T Get<T>() where T : Object
+        internal T As<T>() where T : Object
         {
-            if (!(asset is T))
-            {
-                throw new System.Exception($"{asset} is not {typeof(T)}");
-            }
+            Utility.Assert.IfNot<T>(asset, new System.Exception($"{asset} is not {typeof(T)}"));
             return asset as T;
         }
 

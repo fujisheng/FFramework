@@ -3,6 +3,7 @@ using System;
 
 namespace Framework.Service.Debug
 {
+    [DefaultService]
     internal sealed class DebugService : Service, IDebugService
     {
         IDebugger debugger;

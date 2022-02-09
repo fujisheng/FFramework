@@ -6,128 +6,46 @@ using UnityEngine;
 
 namespace Framework.Service.Resource.Editor
 {
-    static class Extension
+    class ReferenceGraph
     {
-        internal static Dictionary<IReference, ReferenceNode> mapping = new Dictionary<IReference, ReferenceNode>();
+        float xDistance = 50f;
+        float yDistance = 50f;
 
-        public static bool IsLeaf(this MapNode<IReference> value)
+        internal List<ReferenceNode> nodes => NodeExtensions.GetAllNodes();
+        internal List<NodeConnection> connections;
+
+        MapNode<IReference> root;
+
+        internal ReferenceGraph(MapNode<IReference> root)
         {
-            return value.Children.Count == 0;
+            this.root = root;
+            connections = new List<NodeConnection>();
         }
 
-        public static bool IsUpMost(this MapNode<IReference> value)
+        internal void Clear()
         {
-            if(value.Previous.Count == 0)
-            {
-                return true;
-            }
-            return value.Previous[0].Children[0] == value;
-        }
-
-        public static bool IsDownMost(this MapNode<IReference> value)
-        {
-            if(value.Previous.Count == 0)
-            {
-                return true;
-            }
-
-            return value.Previous[0].Children[value.Previous[0].Children.Count - 1] == value;
-        }
-
-        public static MapNode<IReference> GetPreviousSibling(this MapNode<IReference> value)
-        {
-            if (value.Previous.Count == 0 || value.IsUpMost())
-            {
-                return null;
-            }
-
-            return value.Previous[0].Children[value.Previous[0].Children.IndexOf(value) - 1];
-        }
-
-        public static MapNode<IReference> GetNextSibling(this MapNode<IReference> value)
-        {
-            if (value.Previous.Count == 0 || value.IsDownMost())
-            {
-                return null;
-            }
-
-            return value.Previous[0].Children[value.Previous[0].Children.IndexOf(value) + 1];
-        }
-
-        public static MapNode<IReference> GetUpMostSibling(this MapNode<IReference> value)
-        {
-            if(value.Previous.Count == 0)
-            {
-                return null;
-            }
-
-            if (value.IsUpMost())
-            {
-                return value;
-            }
-
-            return value.Previous[0].Children[0];
-        }
-
-        public static MapNode<IReference> GetUpMostChild(this MapNode<IReference> value)
-        {
-            if(value.Children.Count == 0)
-            {
-                return null;
-            }
-            return value.Children[0];
-        }
-
-        public static MapNode<IReference> GetDownMostChild(this MapNode<IReference> value)
-        {
-            if(value.Children.Count == 0)
-            {
-                return null;
-            }
-            return value.Children[value.Children.Count - 1];
-        }
-
-        public static ReferenceNode GetRender(this MapNode<IReference> value)
-        {
-            if (mapping.TryGetValue(value.Value, out var node))
-            {
-                return node;
-            }
-
-            node = new ReferenceNode(value.Value);
-            mapping.Add(value.Value, node);
-            return node;
-        }
-    }
-    static class Utility
-    {
-        static float xDistance = 50f;
-        static int nodeSize = 100;
-        static float siblingDistance = 100f;
-        static float treeDistance = 100f;
-
-        internal static List<NodeConnection> connections = new List<NodeConnection>();
-
-        internal static List<ReferenceNode> Nodes
-        {
-            get { return Extension.mapping.Values.ToList(); }
-        }
-
-        internal static void Clear()
-        {
-            Extension.mapping.Clear();
+            nodes.Clear();
             connections.Clear();
         }
 
-        internal static void CalculateNodePositions(MapNode<IReference> root)
+        internal void Draw()
         {
+            connections.Clear();
             InitializeNodes(root, 0);
-            //CalculateInitialX(root);
-            //CheckAllChildrenOnScreen(root);
-            //CalculateFinalPositions(root, 0);
+            CalculateInitialY(root);
+            CheckAllChildrenOnScreen(root);
+            CalculateFinalPositions(root, 0);
+
+            nodes.ForEach(item => item.Draw());
+            connections.ForEach(item => item.Draw());
         }
 
-        static void InitializeNodes(MapNode<IReference> node, int depth)
+        internal void OnDrag(Vector2 delta)
+        {
+            nodes.ForEach(item => item.OnDrag(delta));
+        }
+
+        void InitializeNodes(MapNode<IReference> node, int depth)
         {
             var nodeRender = node.GetRender();
             nodeRender.SetPosition(new Vector2(depth * (nodeRender.Rect.width + xDistance), -1f));
@@ -137,10 +55,10 @@ namespace Framework.Service.Resource.Editor
             {
                 connections.Add(new NodeConnection(nodeRender.outPort, child.GetRender().inPort));
                 InitializeNodes(child, depth + 1);
-            }   
+            }
         }
 
-        static void CalculateFinalPositions(MapNode<IReference> node, float modSum)
+        void CalculateFinalPositions(MapNode<IReference> node, float modSum)
         {
             var nodeRender = node.GetRender();
             nodeRender.OffsetY(modSum);
@@ -149,10 +67,10 @@ namespace Framework.Service.Resource.Editor
             foreach (var child in node.Children)
             {
                 CalculateFinalPositions(child, modSum);
-            } 
+            }
         }
 
-        static void CalculateInitialY(MapNode<IReference> node)
+        void CalculateInitialY(MapNode<IReference> node)
         {
             var render = node.GetRender();
 
@@ -160,13 +78,18 @@ namespace Framework.Service.Resource.Editor
             {
                 CalculateInitialY(child);
             }
-                
+
             if (node.IsLeaf())
             {
                 if (!node.IsUpMost())
-                    render.SetY(node.GetPreviousSibling().GetRender().Rect.y + nodeSize + siblingDistance);
+                {
+                    var preSibling = node.GetPreviousSibling().GetRender();
+                    render.SetY(preSibling.Rect.y + preSibling.Rect.height + yDistance);
+                }
                 else
+                {
                     render.SetY(0);
+                }
             }
             else if (node.Children.Count == 1)
             {
@@ -176,7 +99,8 @@ namespace Framework.Service.Resource.Editor
                 }
                 else
                 {
-                    render.SetY(node.GetPreviousSibling().GetRender().Rect.y + nodeSize + siblingDistance);
+                    var preSibling = node.GetPreviousSibling().GetRender();
+                    render.SetY(preSibling.Rect.y + preSibling.Rect.height + yDistance);
                     render.SetMod(render.Rect.y - node.Children[0].GetRender().Rect.y);
                 }
             }
@@ -184,7 +108,7 @@ namespace Framework.Service.Resource.Editor
             {
                 var leftChild = node.GetUpMostChild();
                 var rightChild = node.GetDownMostChild();
-                var mid = (leftChild.GetRender().Rect.y + rightChild.GetRender().Rect.y) / 2;
+                var mid = (leftChild.GetRender().Rect.y + rightChild.GetRender().Rect.y) / 2f;
 
                 if (node.IsUpMost())
                 {
@@ -192,7 +116,8 @@ namespace Framework.Service.Resource.Editor
                 }
                 else
                 {
-                    render.SetY(node.GetPreviousSibling().GetRender().Rect.y + nodeSize + siblingDistance);
+                    var preSibling = node.GetPreviousSibling().GetRender();
+                    render.SetY(preSibling.Rect.y + preSibling.Rect.height + yDistance);
                     render.SetMod(render.Rect.y - mid);
                 }
             }
@@ -203,11 +128,11 @@ namespace Framework.Service.Resource.Editor
             }
         }
 
-        static void CheckForConflicts(MapNode<IReference> node)
+        void CheckForConflicts(MapNode<IReference> node)
         {
             var render = node.GetRender();
-            var minDistance = treeDistance + nodeSize;
-            var shiftValue = 0F;
+            var minDistance = render.Rect.height + yDistance;
+            var shiftValue = 0f;
 
             var nodeContour = new Dictionary<int, float>();
             GetUpContour(node, 0, ref nodeContour);
@@ -241,7 +166,7 @@ namespace Framework.Service.Resource.Editor
             }
         }
 
-        static void CenterNodesBetween(MapNode<IReference> leftNode, MapNode<IReference> rightNode)
+        void CenterNodesBetween(MapNode<IReference> leftNode, MapNode<IReference> rightNode)
         {
             var leftIndex = leftNode.Previous[0].Children.IndexOf(rightNode);
             var rightIndex = leftNode.Previous[0].Children.IndexOf(leftNode);
@@ -269,7 +194,7 @@ namespace Framework.Service.Resource.Editor
             }
         }
 
-        static void CheckAllChildrenOnScreen(MapNode<IReference> node)
+        void CheckAllChildrenOnScreen(MapNode<IReference> node)
         {
             var nodeContour = new Dictionary<int, float>();
             GetUpContour(node, 0, ref nodeContour);
@@ -288,7 +213,7 @@ namespace Framework.Service.Resource.Editor
             }
         }
 
-        static void GetUpContour(MapNode<IReference> node, float modSum, ref Dictionary<int, float> values)
+        void GetUpContour(MapNode<IReference> node, float modSum, ref Dictionary<int, float> values)
         {
             var render = node.GetRender();
             if (!values.ContainsKey((int)render.Rect.y))
@@ -303,7 +228,7 @@ namespace Framework.Service.Resource.Editor
             }
         }
 
-        static void GetDownContour(MapNode<IReference> node, float modSum, ref Dictionary<int, float> values)
+        void GetDownContour(MapNode<IReference> node, float modSum, ref Dictionary<int, float> values)
         {
             var render = node.GetRender();
             if (!values.ContainsKey((int)render.Rect.y))
