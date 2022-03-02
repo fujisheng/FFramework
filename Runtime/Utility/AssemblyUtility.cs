@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Linq;
 
 namespace Framework
 {
@@ -89,6 +90,18 @@ namespace Framework
                 }
 
                 return null;
+            }
+
+            /// <summary>
+            /// 获取当前程序集内部继承自某个类型的类型
+            /// </summary>
+            /// <param name="baseType"></param>
+            /// <returns></returns>
+            public static Type GetAssignableType(Type baseType)
+            {
+                return System.Reflection.Assembly.GetExecutingAssembly().GetTypes()
+                    .Where(item=>baseType.IsAssignableFrom(item))
+                    .FirstOrDefault();
             }
         }
     }
