@@ -63,7 +63,7 @@ namespace Framework.Service.Resource
         /// <returns>所有的资源</returns>
         public async UniTask<IList<T>> LoadAllAsyncWithLabelAndNames<T>(IList<string> labelOrNames) where T : Object
         {
-            var keys = labelOrNames.OfType<object>();
+            var keys = labelOrNames.OfType<object>() as IList<object>;
             return await Addressables.LoadAssetsAsync<T>(keys, null, Addressables.MergeMode.Intersection).Task;
         }
 
