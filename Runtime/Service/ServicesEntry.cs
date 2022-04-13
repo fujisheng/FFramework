@@ -3,11 +3,23 @@
 namespace Framework.Service
 {
     [AddComponentMenu("")]
-    internal class ServicesEntry : MonoBehaviour
+    class ServicesEntry : MonoBehaviour
     {
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        static void Initialize()
+        {
+            if (FindObjectOfType<ServicesEntry>() != null)
+            {
+                return;
+            }
+            var obj = new GameObject("[ServicesEntry]");
+            obj.AddComponent<ServicesEntry>();
+            obj.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
+            DontDestroyOnLoad(obj);
+        }
+
         private void Awake()
         {
-            DontDestroyOnLoad(gameObject);
             Application.lowMemory += OnLowMemory;
         }
 

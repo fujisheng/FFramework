@@ -15,14 +15,6 @@ namespace Framework.Service
         static readonly List<Service> loadedServices = new List<Service>();
         public static IServicesInjectInfo InjectInfo { get; private set; }
 
-        static Services() 
-        {
-            Utility.Assert.IfTrue(UnityEngine.Object.FindObjectOfType<ServicesEntry>(), new Exception("ServiceEntry is not singlon, please check other entry"));
-            var moduleEntry = new GameObject("[ServiceEntry]");
-            moduleEntry.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
-            moduleEntry.AddComponent<ServicesEntry>();
-        }
-
         /// <summary>
         /// 设置注入配置
         /// </summary>
