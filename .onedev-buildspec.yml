@@ -5,7 +5,7 @@ jobs:
   - !PushRepository
     name: push to github
     remoteUrl: https://github.com/fujisheng/FFramework.git
-    userName: JasonFu
+    userName: fujisheng
     passwordSecret: github_sync
     withLfs: false
     force: true
