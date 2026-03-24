@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Framework.Service.Resource.Editor
+namespace Framework.Module.Resource.Editor
 {
     class ReferenceNode : Node<IReference>
     {

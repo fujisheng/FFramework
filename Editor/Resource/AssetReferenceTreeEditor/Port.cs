@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Framework.Service.Resource.Editor
+namespace Framework.Module.Resource.Editor
 {
     enum PortType { In, Out }
 

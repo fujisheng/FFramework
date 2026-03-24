@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using Framework.Collections;
+using Framework.Module.Resource;
 
 namespace Framework
 {
     public class ReferenceTree
     {
-
         /// <summary>
         /// 所有的根节点
         /// </summary>
@@ -17,6 +18,11 @@ namespace Framework
         List<ReferenceNode> refSet;
 
         /// <summary>
+        /// 快速查找引用的字典 O(1)查找
+        /// </summary>
+        Dictionary<IReference, ReferenceNode> refMap;
+
+        /// <summary>
         /// 存放等待被标记的引用
         /// </summary>
         Queue<ReferenceNode> markSet;
@@ -25,6 +31,7 @@ namespace Framework
         {
             roots = new List<ReferenceNode>();
             refSet = new List<ReferenceNode>();
+            refMap = new Dictionary<IReference, ReferenceNode>();
             markSet = new Queue<ReferenceNode>();
         }
 
@@ -39,11 +46,59 @@ namespace Framework
                 root.AddChild(referenceNode);
             }
 
-            if (!refSet.Exists(item => item.Value.Equals(referenceNode.Value)))
+            if (!refMap.ContainsKey(referenceNode.Value))
             {
                 refSet.Add(referenceNode);
+                refMap[referenceNode.Value] = referenceNode;
             }
         }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// 检测添加引用关系是否会形成循环
+        /// 使用DFS从child开始遍历其祖先节点，如果能到达parent则会形成循环
+        /// </summary>
+        /// <param name="parent">父节点</param>
+        /// <param name="child">子节点</param>
+        /// <returns>如果会形成循环返回true，否则返回false</returns>
+        bool WouldCreateCycle(ReferenceNode parent, ReferenceNode child)
+        {
+            if (parent == null || child == null)
+            {
+                return false;
+            }
+
+            // 检查child的祖先链是否能到达parent
+            var visited = new HashSet<ReferenceNode>();
+            var stack = new Stack<ReferenceNode>();
+            stack.Push(child);
+
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+                
+                // 找到了parent，说明会形成循环
+                if (current == parent)
+                {
+                    return true;
+                }
+
+                // 避免无限循环
+                if (!visited.Add(current))
+                {
+                    continue;
+                }
+
+                // 遍历所有父节点
+                foreach (var prev in current.Previous)
+                {
+                    stack.Push((ReferenceNode)prev);
+                }
+            }
+
+            return false;
+        }
+#endif
 
         public void Alloc(IReference reference)
         {
@@ -52,10 +107,22 @@ namespace Framework
 
         public void Alloc(IReference root, IReference reference)
         {
-            UnityEngine.Debug.Log($"alloc root:{root}  reference:{reference}");
-            var rootNode = refSet.Find(item => item.Value.Equals(root));
-            var referenceNode = refSet.Find(item => item.Value.Equals(reference));
-            referenceNode = referenceNode ?? new ReferenceNode(reference);
+            ResourceLogger.Verbose("ReferenceTree", $"Alloc root:{root} reference:{reference}");
+            refMap.TryGetValue(root, out var rootNode);
+            if (!refMap.TryGetValue(reference, out var referenceNode))
+            {
+                referenceNode = new ReferenceNode(reference);
+            }
+            
+#if UNITY_EDITOR
+            // 检测是否会形成循环引用
+            if (rootNode != null && WouldCreateCycle(rootNode, referenceNode))
+            {
+                ResourceLogger.Warning("ReferenceTree", $"Cycle detected: {reference} -> {root}. Skipping allocation.");
+                return;
+            }
+#endif
+            
             AllocInternal(rootNode, referenceNode);
         }
 
@@ -68,19 +135,22 @@ namespace Framework
         {
             if (reference == null)
             {
+                ResourceLogger.Verbose("ReferenceTree", "Release failed: reference is null");
                 return;
             }
 
-            var node = refSet.Find(item => item.Value.Equals(reference));
-            if (node == null)
+            if (!refMap.TryGetValue(reference, out var node))
             {
+                ResourceLogger.Verbose("ReferenceTree", $"Release failed: reference not found - {reference}");
                 return;
             }
 
             if (!force && node.Children.Count != 0)
             {
+                ResourceLogger.Verbose("ReferenceTree", $"Release skipped: {reference} has {node.Children.Count} children (force={force})");
                 return;
             }
+            ResourceLogger.Verbose("ReferenceTree", $"Release: {reference} (force={force})");
             node.Previous.ForEach(item => { item.RemoveChild(reference); Release(item.Value); });
         }
 
@@ -89,21 +159,39 @@ namespace Framework
         /// </summary>
         public void Collect()
         {
+            ResourceLogger.Verbose("ReferenceTree", $"Collect: roots={roots.Count}, refs={refSet.Count}");
             refSet.ForEach(item => item.mark = Mark.White);
             roots.ForEach(item => { item.mark = Mark.Grey; markSet.Enqueue(item); });
 
             //标记
-            while (true)
+            while (markSet.Count > 0)
             {
-                if (markSet.Count == 0)
-                {
-                    break;
-                }
-
                 var cur = markSet.Dequeue();
+                
+                // 只有White节点才需要处理（防止循环引用导致的重复处理）
+                if (cur.mark != Mark.White)
+                {
+                    continue;
+                }
+                
                 cur.mark = Mark.Black;
-                cur.Children.ForEach(child => { var node = (ReferenceNode)child; node.mark = Mark.Grey; markSet.Enqueue(node); });
+                
+                // 只将White子节点标记为Grey并入队
+                foreach (var child in cur.Children)
+                {
+                    var node = (ReferenceNode)child;
+                    if (node.mark == Mark.White)
+                    {
+                        node.mark = Mark.Grey;
+                        markSet.Enqueue(node);
+                    }
+                }
             }
+
+#if DEBUG_RESOURCE
+            var whiteCount = refSet.FindAll(item => item.mark == Mark.White).Count;
+            ResourceLogger.Verbose("ReferenceTree", $"Collect completed: {whiteCount} references marked for deletion");
+#endif
         }
 
         /// <summary>
@@ -113,11 +201,44 @@ namespace Framework
         {
             //清除  这个地方倒序是因为可能后分配的会引用先分配的
             var whiteRefSet = refSet.FindAll(item => item.mark == Mark.White);
+            ResourceLogger.Verbose("ReferenceTree", $"Delete: {whiteRefSet.Count} references to release");
             whiteRefSet.Reverse();
-            whiteRefSet.ForEach(item => item.Value.Release());
+            foreach (var item in whiteRefSet)
+            {
+                ResourceLogger.Verbose("ReferenceTree", $"  Deleting: {item.Value}");
+            }
+            // 清理被删除节点的边连接
+            foreach (var whiteNode in whiteRefSet)
+            {
+                // 从父节点的 Children 中移除
+                foreach (var parent in whiteNode.Previous)
+                {
+                    parent.Children.Remove(whiteNode);
+                }
+                whiteNode.Previous.Clear();
+                
+                // 从子节点的 Previous 中移除
+                foreach (var child in whiteNode.Children)
+                {
+                    child.Previous.Remove(whiteNode);
+                }
+                whiteNode.Children.Clear();
+                
+                // 释放资源
+                whiteNode.Value.Release();
+            }
+            
             refSet.RemoveAll(item => item.mark == Mark.White);
             roots.RemoveAll(item => item.mark == Mark.White);
+            
+            // 从 refMap 中移除已释放的引用
+            foreach (var whiteNode in whiteRefSet)
+            {
+                refMap.Remove(whiteNode.Value);
+            }
+            
             markSet.Clear();
+            ResourceLogger.Verbose("ReferenceTree", $"Delete completed: {refSet.Count} refs, {roots.Count} roots remaining");
         }
     }
 }

@@ -2,7 +2,7 @@
 using System.Linq;
 using Framework.Collections;
 
-namespace Framework.Service.Resource.Editor
+namespace Framework.Module.Resource.Editor
 {
     static class NodeExtensions
     {

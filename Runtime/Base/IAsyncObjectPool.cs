@@ -1,4 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace Framework
 {
@@ -9,7 +9,7 @@ namespace Framework
         float LastUseTime { get; }
         void SetSize(int size);
         void Push(T obj);
-        UniTask<T> Pop();
+        ValueTask<T> Pop();
         void Release();
     }
 }

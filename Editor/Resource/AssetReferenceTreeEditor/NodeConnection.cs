@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Framework.Service.Resource.Editor
+namespace Framework.Module.Resource.Editor
 {
     class NodeConnection
     {

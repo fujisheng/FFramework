@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 
-namespace Framework.Service.Resource.Editor
+namespace Framework.Module.Resource.Editor
 {
     public class AssetBundleTools : UnityEditor.Editor
     {

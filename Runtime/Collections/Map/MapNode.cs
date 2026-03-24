@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Framework.Collections
 {
@@ -65,7 +65,15 @@ namespace Framework.Collections
         /// <param name="childValue"></param>
         public void RemoveChild(T childValue)
         {
-            Children.RemoveAll(item => item.Value.Equals(childValue));
+            // 找到要移除的子节点
+            var child = Children.Find(item => item.Value.Equals(childValue));
+            if (child != null)
+            {
+                // 从子节点的 Previous 中移除当前节点（维护双向边）
+                child.Previous.Remove(this);
+                // 从当前节点的 Children 中移除子节点
+                Children.Remove(child);
+            }
         }
 
         public void AddPrevious(MapNode<T> previous)

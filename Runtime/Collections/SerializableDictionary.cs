@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using UnityEngine;
 
 namespace Framework.Collections
@@ -8,51 +9,43 @@ namespace Framework.Collections
     public class SerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, ISerializationCallbackReceiver
     {
         [SerializeField]
-        private List<TKey> _keys;
+        public List<TKey> keys;
         [SerializeField]
-        private List<TValue> _values;
+        public List<TValue> values;
+
+        public SerializableDictionary(Dictionary<TKey, TValue> dic)
+        {
+            keys = new List<TKey>(dic.Count);
+            values = new List<TValue>(dic.Count);
+
+            keys.AddRange(dic.Keys);
+            values.AddRange(dic.Values);
+
+            for (int i = 0; i < keys.Count; ++i)
+            {
+                this.Add(keys[i], values[i]);
+            }
+        }
 
         public void OnBeforeSerialize()
         {
-            _keys = new List<TKey>(this.Count);
-            _values = new List<TValue>(this.Count);
+            keys = new List<TKey>(this.Count);
+            values = new List<TValue>(this.Count);
             foreach (var kvp in this)
             {
-                _keys.Add(kvp.Key);
-                _values.Add(kvp.Value);
+                keys.Add(kvp.Key);
+                values.Add(kvp.Value);
             }
         }
 
         public void OnAfterDeserialize()
         {
             this.Clear();
-            int count = Mathf.Min(_keys.Count, _values.Count);
+            int count = Mathf.Min(keys.Count, values.Count);
             for (int i = 0; i < count; ++i)
             {
-                this.Add(_keys[i], _values[i]);
+                this.Add(keys[i], values[i]);
             }
         }
     }
-
-
-    [Serializable]
-    public class KVData_string_string : SerializableDictionary<string, string> { }
-
-    [Serializable]
-    public class KVData_int_string : SerializableDictionary<int, string> { }
-
-    [Serializable]
-    public class KVData_string_int : SerializableDictionary<string, int> { }
-
-    [Serializable]
-    public class KVData_int_int : SerializableDictionary<int, int> { }
-
-    [Serializable]
-    public class KVData_int_float : SerializableDictionary<int, float> { }
-
-    [Serializable]
-    public class KVData_int_Vector3 : SerializableDictionary<int, Vector3> { }
-
-    [Serializable]
-    public class KVData_int_KVData_int_Vector3 : SerializableDictionary<int, KVData_int_Vector3> { }
 }

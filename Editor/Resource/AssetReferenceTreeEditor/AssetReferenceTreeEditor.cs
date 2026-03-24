@@ -3,7 +3,7 @@ using Framework.Collections;
 using UnityEditor;
 using UnityEngine;
 
-namespace Framework.Service.Resource.Editor
+namespace Framework.Module.Resource.Editor
 {
     public class AssetReferenceTreeEditor : EditorWindow
     {
@@ -26,7 +26,7 @@ namespace Framework.Service.Resource.Editor
         {
             DrawMenu();
             referenceGraph?.Draw();
-            ProcessEvents(Event.current);
+            ProcessEvents(UnityEngine.Event.current);
         }
 
         void DrawMenu()
@@ -75,7 +75,7 @@ namespace Framework.Service.Resource.Editor
             }
         }
 
-        void ProcessEvents(Event e)
+        void ProcessEvents(UnityEngine.Event e)
         {
             switch (e.type)
             {

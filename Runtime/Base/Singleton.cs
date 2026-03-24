@@ -1,24 +1,26 @@
-﻿using System.Reflection;
-
-namespace Framework
+﻿namespace Framework
 {
     public abstract class Singleton<T> where T : class
     {
-        protected static T instance;
+        static readonly object lockObject = new object();
+        static T instance;
+
         public static T Instance
         {
             get
             {
-                if(instance == null)
+                if (instance == null)
                 {
-                    instance = System.Activator.CreateInstance(typeof(T)) as T;
-                    typeof(T).GetMethod("OnConstructor", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static)?.Invoke(instance, null);
+                    lock (lockObject)
+                    {
+                        if (instance == null)
+                        {
+                            instance = System.Activator.CreateInstance(typeof(T), true) as T;
+                        }
+                    }
                 }
-                
                 return instance;
             }
         }
-
-        protected virtual void OnConstructor() { }
     }
 }
