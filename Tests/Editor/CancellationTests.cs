@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using Assert = NUnit.Framework.Assert;
 
 namespace Framework.Tests.Editor.Resource
 {
