@@ -70,10 +70,16 @@ namespace Framework.Tests.Editor
             };
 
             // Act & Assert
-            var ex = Assert.ThrowsAsync<Exception>(async () =>
+            Exception ex = null;
+            try
             {
                 await mockLoader.LoadWithRetryAsync("test_asset");
-            });
+                Assert.Fail("Expected exception was not thrown");
+            }
+            catch (Exception e)
+            {
+                ex = e;
+            }
 
             Assert.IsTrue(ex.Message.Contains("Load failed after 3 retries"));
             Assert.AreEqual(3, attemptCount, "应该尝试3次");
@@ -94,10 +100,15 @@ namespace Framework.Tests.Editor
             };
 
             // Act & Assert
-            var ex = Assert.ThrowsAsync<ArgumentException>(async () =>
+            try
             {
                 await mockLoader.LoadWithRetryAsync("test_asset");
-            });
+                Assert.Fail("Expected ArgumentException");
+            }
+            catch (ArgumentException)
+            {
+                // Expected
+            }
 
             Assert.AreEqual(1, attemptCount, "永久性错误不应该重试");
         }
@@ -115,10 +126,15 @@ namespace Framework.Tests.Editor
             };
 
             // Act & Assert
-            var ex = Assert.ThrowsAsync<NullReferenceException>(async () =>
+            try
             {
                 await mockLoader.LoadWithRetryAsync("test_asset");
-            });
+                Assert.Fail("Expected NullReferenceException");
+            }
+            catch (NullReferenceException)
+            {
+                // Expected
+            }
 
             Assert.AreEqual(1, attemptCount, "NullReferenceException 不应该重试");
         }
@@ -178,10 +194,15 @@ namespace Framework.Tests.Editor
             };
 
             // Act & Assert
-            Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            try
             {
                 await mockLoader.LoadWithRetryAsync("test_asset", cts.Token);
-            });
+                Assert.Fail("Expected OperationCanceledException");
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected
+            }
 
             Assert.AreEqual(2, attemptCount);
         }

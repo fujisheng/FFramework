@@ -16,7 +16,7 @@ namespace Framework.Tests.Editor.Resource
         #region AssetLoader 取消测试
 
         [Test]
-        public async Task LoadAsync_CancelledBeforeStart_ThrowsOperationCancelledException()
+        public void LoadAsync_CancelledBeforeStart_ThrowsOperationCancelledException()
         {
             // Arrange
             var cts = new CancellationTokenSource();
@@ -24,7 +24,7 @@ namespace Framework.Tests.Editor.Resource
             
             // Act & Assert - 由于 AssetLoader 是 internal 类，这里我们模拟测试场景
             // 实际测试需要集成测试环境
-            Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            Assert.Throws<OperationCanceledException>(() =>
             {
                 cts.Token.ThrowIfCancellationRequested();
             });
