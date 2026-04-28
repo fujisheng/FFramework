@@ -208,6 +208,7 @@ namespace Framework.Module
             {
                 loadedModules[i].OnTearDown();
             }
+            Injector.ReleaseAll();
         }
 
         /// <summary>

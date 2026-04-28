@@ -127,6 +127,11 @@ namespace Framework.Module.Audio
 		/// </summary>
 		void CreateRoot()
 		{
+			if (root != null)
+			{
+				return;
+			}
+
 			root = GameObject.Find("[AudioRoot]");
 			if (root == null)
 			{
@@ -161,7 +166,12 @@ namespace Framework.Module.Audio
 			{
 				return channel;
 			}
-			channel = new AudioChannel(id, false);
+			CreateRoot();
+			channel = new AudioChannel(id, false, root, null);
+			if (id == (int)ChannelType.BG)
+			{
+				channel.Loop = true;
+			}
 			channel.Volume = volume;
 			channels[id] = channel;
 			return channel;
@@ -538,7 +548,23 @@ namespace Framework.Module.Audio
 		/// </summary>
 		internal override void OnTearDown()
 		{
-			resourceLoader.Release();
+			foreach (var channel in channels.Values)
+			{
+				channel.TearDown();
+			}
+
+			channels.Clear();
+			mainPending.Clear();
+			fades.Clear();
+			clips.Clear();
+
+			if (root != null)
+			{
+				UnityEngine.Object.Destroy(root);
+				root = null;
+			}
+
+			resourceLoader?.Release();
 			base.OnTearDown();
 		}
 	}

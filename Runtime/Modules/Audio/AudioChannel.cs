@@ -73,6 +73,11 @@ namespace Framework.Module.Audio
 			ConfigureSource(mainSource, loop);
 		}
 
+		static bool IsAlive(UnityEngine.Object target)
+		{
+			return target != null;
+		}
+
 		/// <summary>
 		/// 获取或创建根节点
 		/// </summary>
@@ -105,6 +110,16 @@ namespace Framework.Module.Audio
 		/// </summary>
 		AudioSource GetConcurrentSource()
 		{
+			for (var i = concurrentSources.Count -1; i >=0; i--)
+			{
+				var src = concurrentSources[i];
+				if (!IsAlive(src))
+				{
+					concurrentSources.RemoveAt(i);
+					continue;
+				}
+			}
+
 			for (var i =0; i < concurrentSources.Count; i++)
 			{
 				var src = concurrentSources[i];
@@ -113,6 +128,12 @@ namespace Framework.Module.Audio
 					return src;
 				}
 			}
+
+			if (!IsAlive(owner))
+			{
+				return null;
+			}
+
 			if (concurrentSources.Count < MaxConcurrentSources)
 			{
 				var newSrc = owner.AddComponent<AudioSource>();
@@ -131,15 +152,26 @@ namespace Framework.Module.Audio
 		{
 			set
 			{
-				mainSource.volume = value;
-				for (var i =0; i < concurrentSources.Count; i++)
+				if (IsAlive(mainSource))
 				{
-					concurrentSources[i].volume = value;
+					mainSource.volume = value;
+				}
+
+				for (var i = concurrentSources.Count -1; i >=0; i--)
+				{
+					var src = concurrentSources[i];
+					if (!IsAlive(src))
+					{
+						concurrentSources.RemoveAt(i);
+						continue;
+					}
+
+					src.volume = value;
 				}
 			}
 			get
 			{
-				return mainSource.volume;
+				return IsAlive(mainSource) ? mainSource.volume : 0f;
 			}
 		}
 
@@ -155,7 +187,10 @@ namespace Framework.Module.Audio
 			set
 			{
 				loop = value;
-				mainSource.loop = loop;
+				if (IsAlive(mainSource))
+				{
+					mainSource.loop = loop;
+				}
 			}
 		}
 
@@ -166,13 +201,20 @@ namespace Framework.Module.Audio
 		{
 			get
 			{
-				if (mainSource.isPlaying)
+				if (IsAlive(mainSource) && mainSource.isPlaying)
 				{
 					return true;
 				}
-				for (var i =0; i < concurrentSources.Count; i++)
+				for (var i = concurrentSources.Count -1; i >=0; i--)
 				{
-					if (concurrentSources[i].isPlaying)
+					var src = concurrentSources[i];
+					if (!IsAlive(src))
+					{
+						concurrentSources.RemoveAt(i);
+						continue;
+					}
+
+					if (src.isPlaying)
 					{
 						return true;
 					}
@@ -186,7 +228,7 @@ namespace Framework.Module.Audio
 		/// </summary>
 		public AudioSource PlayClip(AudioClip clip)
 		{
-			if (clip == null)
+			if (clip == null || !IsAlive(mainSource))
 			{
 				return null;
 			}
@@ -216,10 +258,21 @@ namespace Framework.Module.Audio
 		/// </summary>
 		public void IgnoreTimeScale(bool ignore)
 		{
-			mainSource.velocityUpdateMode = ignore ? AudioVelocityUpdateMode.Dynamic : AudioVelocityUpdateMode.Fixed;
-			for (var i =0; i < concurrentSources.Count; i++)
+			if (IsAlive(mainSource))
 			{
-				concurrentSources[i].velocityUpdateMode = ignore ? AudioVelocityUpdateMode.Dynamic : AudioVelocityUpdateMode.Fixed;
+				mainSource.velocityUpdateMode = ignore ? AudioVelocityUpdateMode.Dynamic : AudioVelocityUpdateMode.Fixed;
+			}
+
+			for (var i = concurrentSources.Count -1; i >=0; i--)
+			{
+				var src = concurrentSources[i];
+				if (!IsAlive(src))
+				{
+					concurrentSources.RemoveAt(i);
+					continue;
+				}
+
+				src.velocityUpdateMode = ignore ? AudioVelocityUpdateMode.Dynamic : AudioVelocityUpdateMode.Fixed;
 			}
 		}
 
@@ -228,10 +281,21 @@ namespace Framework.Module.Audio
 		/// </summary>
 		public void StopAll()
 		{
-			mainSource.Stop();
-			for (var i =0; i < concurrentSources.Count; i++)
+			if (IsAlive(mainSource))
 			{
-				concurrentSources[i].Stop();
+				mainSource.Stop();
+			}
+
+			for (var i = concurrentSources.Count -1; i >=0; i--)
+			{
+				var src = concurrentSources[i];
+				if (!IsAlive(src))
+				{
+					concurrentSources.RemoveAt(i);
+					continue;
+				}
+
+				src.Stop();
 			}
 		}
 
@@ -240,13 +304,19 @@ namespace Framework.Module.Audio
 		/// </summary>
 		public void PauseAll()
 		{
-			if (mainSource.isPlaying)
+			if (IsAlive(mainSource) && mainSource.isPlaying)
 			{
 				mainSource.Pause();
 			}
-			for (var i =0; i < concurrentSources.Count; i++)
+			for (var i = concurrentSources.Count -1; i >=0; i--)
 			{
 				var src = concurrentSources[i];
+				if (!IsAlive(src))
+				{
+					concurrentSources.RemoveAt(i);
+					continue;
+				}
+
 				if (src.isPlaying)
 				{
 					src.Pause();
@@ -259,10 +329,21 @@ namespace Framework.Module.Audio
 		/// </summary>
 		public void ResumeAll()
 		{
-			mainSource.UnPause();
-			for (var i =0; i < concurrentSources.Count; i++)
+			if (IsAlive(mainSource))
 			{
-				concurrentSources[i].UnPause();
+				mainSource.UnPause();
+			}
+
+			for (var i = concurrentSources.Count -1; i >=0; i--)
+			{
+				var src = concurrentSources[i];
+				if (!IsAlive(src))
+				{
+					concurrentSources.RemoveAt(i);
+					continue;
+				}
+
+				src.UnPause();
 			}
 		}
 
@@ -275,13 +356,19 @@ namespace Framework.Module.Audio
 			{
 				return;
 			}
-			if (mainSource.isPlaying)
+			if (IsAlive(mainSource) && mainSource.isPlaying)
 			{
 				action(mainSource);
 			}
-			for (var i =0; i < concurrentSources.Count; i++)
+			for (var i = concurrentSources.Count -1; i >=0; i--)
 			{
 				var src = concurrentSources[i];
+				if (!IsAlive(src))
+				{
+					concurrentSources.RemoveAt(i);
+					continue;
+				}
+
 				if (src.isPlaying)
 				{
 					action(src);
@@ -298,18 +385,37 @@ namespace Framework.Module.Audio
 			{
 				return;
 			}
-			if (mainSource.clip != null && mainSource.clip.name == clipName)
+			if (IsAlive(mainSource) && mainSource.clip != null && mainSource.clip.name == clipName)
 			{
 				mainSource.Stop();
 			}
-			for (var i =0; i < concurrentSources.Count; i++)
+			for (var i = concurrentSources.Count -1; i >=0; i--)
 			{
 				var src = concurrentSources[i];
+				if (!IsAlive(src))
+				{
+					concurrentSources.RemoveAt(i);
+					continue;
+				}
+
 				if (src.clip != null && src.clip.name == clipName)
 				{
 					src.Stop();
 				}
 			}
+		}
+
+		public void TearDown()
+		{
+			StopAll();
+			concurrentSources.Clear();
+			mainSource = null;
+			if (IsAlive(owner))
+			{
+				UnityEngine.Object.Destroy(owner);
+			}
+			owner = null;
+			root = null;
 		}
 	}
 }

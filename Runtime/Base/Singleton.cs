@@ -5,6 +5,13 @@
         static readonly object lockObject = new object();
         static T instance;
 
+        public static bool HasInstance => instance != null;
+
+        public static T TryGetInstance()
+        {
+            return instance;
+        }
+
         public static T Instance
         {
             get
